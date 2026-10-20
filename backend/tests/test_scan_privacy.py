@@ -11,9 +11,11 @@ os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("JWT_SECRET_KEY", "test-only-secret")
 
 from app.db.models import AnalysisResult, ThreatIndicator
+from app.routes.dashboard import scan_title
 from app.routes import scans
 from app.services.scan_privacy import (
     redact_url_for_storage,
+    safe_indicator_description,
     safe_scan_preview,
 )
 
@@ -31,22 +33,33 @@ class CaptureDB:
 
 
 class ScanPrivacyTests(unittest.TestCase):
-    def test_url_preview_redacts_credentials_tokens_sessions_and_fragment(self):
+    def test_url_preview_keeps_only_scheme_and_normalized_host(self):
         url = (
-            "https://user:password@safe.example/reset/RESET_TOKEN_123456789"
-            "?access_token=ACCESS_SECRET&sid=SESSION_SECRET&campaign=summer"
+            "HTTPS://user:password@Safe.Example.:8443/reset/RESET_TOKEN_123456789"
+            "?unknown=ARBITRARY_SECRET&sid=SESSION_SECRET&campaign=summer"
             "#fragment-secret"
         )
         stored = redact_url_for_storage(url)
 
         for secret in (
-            "user", "password", "RESET_TOKEN_123456789", "ACCESS_SECRET",
-            "SESSION_SECRET", "fragment-secret",
+            "user", "password", "RESET_TOKEN_123456789",
+            "ARBITRARY_SECRET", "SESSION_SECRET", "fragment-secret", "8443",
+            "reset", "campaign",
         ):
             self.assertNotIn(secret, stored)
-        self.assertIn("safe.example", stored)
-        self.assertIn("campaign=summer", stored)
-        self.assertIn("access_token=%5Bredacted%5D", stored)
+        self.assertEqual(stored, "https://safe.example")
+
+    def test_url_minimization_supports_ipv6_and_rejects_malformed_urls(self):
+        self.assertEqual(
+            redact_url_for_storage("https://user:secret@[2001:0db8::1]:9443/private?x=y#z"),
+            "https://[2001:db8::1]",
+        )
+        self.assertEqual(
+            redact_url_for_storage("https://[fe80::1%25eth0]/path"),
+            "[redacted URL]",
+        )
+        self.assertEqual(redact_url_for_storage("https://[broken"), "[redacted URL]")
+        self.assertEqual(redact_url_for_storage("https://safe.example:bad/path"), "[redacted URL]")
 
     def test_message_qr_and_screenshot_previews_are_generic(self):
         private_message = "PRIVATE bank message with OTP 481902"
@@ -56,7 +69,7 @@ class ScanPrivacyTests(unittest.TestCase):
 
     def test_analysis_persistence_removes_ocr_filename_and_sensitive_urls(self):
         secret_text = "PRIVATE MESSAGE reset-token-secret"
-        secret_url = "https://safe.example/reset/reset-token-secret?session_id=session-secret#fragment-secret"
+        secret_url = "https://safe.example/reset/reset-token-secret?unknown=session-secret#fragment-secret"
         analysis = SimpleNamespace(
             risk_score=72,
             confidence=88.0,
@@ -77,7 +90,7 @@ class ScanPrivacyTests(unittest.TestCase):
             },
             signals=[SimpleNamespace(
                 indicator_type="credential_request",
-                description="Credential request found",
+                description="Credential request found: reset-token-secret and private OCR text",
                 severity="high",
                 evidence={"path": "/reset/reset-token-secret", "hostname": "safe.example"},
             )],
@@ -89,13 +102,25 @@ class ScanPrivacyTests(unittest.TestCase):
 
         result = next(row for row in db.added if isinstance(row, AnalysisResult))
         indicator = next(row for row in db.added if isinstance(row, ThreatIndicator))
-        persisted = json.dumps({"features": result.features, "explanation": result.explanation, "evidence": indicator.evidence})
+        persisted = json.dumps({
+            "features": result.features,
+            "explanation": result.explanation,
+            "evidence": indicator.evidence,
+            "description": indicator.description,
+        })
         for secret in (secret_text, "private-filename.png", "reset-token-secret", "session-secret", "fragment-secret"):
             self.assertNotIn(secret, persisted)
         self.assertEqual(result.features["url_count"], 1)
         self.assertEqual(result.features["hostname"], "safe.example")
         self.assertEqual(result.explanation["summary"], "Suspicious URL found")
+        self.assertEqual(result.prediction, "suspicious")
+        self.assertEqual(scan.status, "high")
+        self.assertEqual(indicator.indicator_type, "credential_request")
         self.assertEqual(indicator.evidence["hostname"], "safe.example")
+        self.assertEqual(
+            indicator.description,
+            "The content references credentials such as passwords or one-time codes.",
+        )
 
     def test_history_response_replaces_legacy_private_previews(self):
         old_scans = [
@@ -115,6 +140,14 @@ class ScanPrivacyTests(unittest.TestCase):
         self.assertNotIn("secret", serialized)
         self.assertIn("safe.example", serialized)
 
+    def test_dashboard_title_minimizes_legacy_url_preview(self):
+        scan = SimpleNamespace(
+            input_type="url",
+            redacted_preview="https://user:secret@safe.example/path?x=token#fragment",
+        )
+        title = scan_title(scan)
+        self.assertEqual(title, "https://safe.example")
+
     def test_detail_response_redacts_legacy_analysis_and_indicator_fields(self):
         scan_id = uuid4()
         created_at = datetime.now(timezone.utc)
@@ -122,7 +155,7 @@ class ScanPrivacyTests(unittest.TestCase):
             id=scan_id, input_type="screenshot", status="high", risk_score=72,
             confidence=88.0, threat_type="Suspicious Screenshot Content", created_at=created_at,
         )
-        legacy_url = "https://safe.example/reset/reset-secret?auth_token=auth-secret#fragment-secret"
+        legacy_url = "https://user:secret@safe.example/opaque/reset-secret?unknown=auth-secret#fragment-secret"
         analysis = SimpleNamespace(
             id=uuid4(), model_name="screenshot", model_version="1", prediction="suspicious",
             probability=0.72,
@@ -131,8 +164,10 @@ class ScanPrivacyTests(unittest.TestCase):
             created_at=created_at,
         )
         indicator = SimpleNamespace(
-            id=uuid4(), indicator_type="credential_request", description="Credential request found",
-            severity="high", evidence={"path": "/reset/reset-secret", "hostname": "safe.example"},
+            id=uuid4(), indicator_type="credential_request",
+            severity="high",
+            description="Private OCR secret auth-secret",
+            evidence={"path": "/reset/reset-secret", "url": legacy_url, "hostname": "safe.example"},
         )
         db = CaptureDB([
             SimpleNamespace(scalar_one_or_none=lambda: scan),
@@ -143,10 +178,20 @@ class ScanPrivacyTests(unittest.TestCase):
         response = asyncio.run(scans.get_scan_detail(scan_id, SimpleNamespace(id=uuid4()), db))
         serialized = response.model_dump_json()
 
-        for secret in ("private OCR text", "local.png", "reset-secret", "auth-secret", "fragment-secret"):
+        for secret in ("private OCR text", "local.png", "reset-secret", "auth-secret", "fragment-secret", "user:secret"):
             self.assertNotIn(secret, serialized)
         self.assertEqual(response.analysis.features["hostname"], "safe.example")
-        self.assertEqual(response.indicators[0].description, "Credential request found")
+        self.assertEqual(
+            response.indicators[0].description,
+            "The content references credentials such as passwords or one-time codes.",
+        )
+        self.assertEqual(response.analysis.explanation["normalized"], "https://safe.example")
+        self.assertEqual(response.indicators[0].evidence["url"], "https://safe.example")
+
+    def test_unknown_indicator_type_uses_generic_controlled_description(self):
+        description = safe_indicator_description("unexpected")
+        self.assertNotIn("submitted secret", description)
+        self.assertEqual(description, "A potential risk indicator was detected.")
 
 
 if __name__ == "__main__":

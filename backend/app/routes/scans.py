@@ -24,7 +24,11 @@ from app.schemas.scans import (
     URLScanRequest,
 )
 from app.services.risk_engine import analyze_message, analyze_url
-from app.services.scan_privacy import safe_scan_preview, sanitize_analysis_payload
+from app.services.scan_privacy import (
+    safe_indicator_description,
+    safe_scan_preview,
+    sanitize_analysis_payload,
+)
 from app.services.screenshot_analysis import (
     ScreenshotTooLargeError,
     analyze_screenshot_bytes,
@@ -72,7 +76,7 @@ def _persist_analysis_result(
             ThreatIndicator(
                 scan_id=scan.id,
                 indicator_type=signal.indicator_type,
-                description=signal.description,
+                description=safe_indicator_description(signal.indicator_type),
                 severity=signal.severity,
                 evidence=sanitize_analysis_payload(signal.evidence),
             )
@@ -338,7 +342,7 @@ async def get_scan_detail(
         ThreatIndicatorResponse(
             id=indicator.id,
             indicator_type=indicator.indicator_type,
-            description=indicator.description,
+            description=safe_indicator_description(indicator.indicator_type),
             severity=indicator.severity,
             evidence=sanitize_analysis_payload(indicator.evidence),
         )
