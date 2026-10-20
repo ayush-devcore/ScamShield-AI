@@ -1,0 +1,46 @@
+﻿# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Node.js
+**/node_modules/
+**/dist/
+coverage/
+
+# Python
+**/__pycache__/
+*.py[cod]
+**/.venv/
+**/venv/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Local IDE settings
+.vscode/
+
+# Local test artifacts
+ocr_test.png
+
+# Local databases and private keys
+*.db
+*.sqlite
+*.sqlite3
+*.pem
+*.key
+
+# Large local URL training datasets
+data/urls/malicious_phish.csv
+backend/data/urls/cleaned_urls.csv
+backend/data/urls/malicious_phish.csv
+
+# Experimental model candidates
+backend/models/candidates/*.joblib
+
+# Local URL training datasets
+data/urls/*.csv
+backend/data/urls/*.csv
+
+# Experimental model binaries; preserve evaluation metadata
+backend/models/candidates/*.joblib

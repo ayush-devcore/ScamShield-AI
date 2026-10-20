@@ -1,0 +1,177 @@
+{
+  "model_name": "scamshield-url-tfidf-sgd-structural",
+  "model_version": "0.3.0-sgd-structural-candidate",
+  "dataset_path": "C:\\Users\\ayush\\OneDrive\\Desktop\\ScamShield AI\\backend\\data\\urls\\cleaned_urls.csv",
+  "dataset_rows_used": 641113,
+  "label_counts": {
+    "benign": 428074,
+    "defacement": 95308,
+    "malware": 23645,
+    "phishing": 94086
+  },
+  "split_sizes": {
+    "train_rows": 445657,
+    "validation_rows": 116463,
+    "test_rows": 78993,
+    "train_host_groups": 140792,
+    "validation_host_groups": 28227,
+    "test_host_groups": 27515,
+    "hostname_group_overlap": false
+  },
+  "validation": {
+    "accuracy": 0.8789744382336021,
+    "macro_f1": 0.8356156166356304,
+    "macro_recall": 0.8323830536269221,
+    "per_class": {
+      "benign": {
+        "precision": 0.9242698091382302,
+        "recall": 0.9209407866301685,
+        "f1-score": 0.9226022948690192,
+        "support": 83292.0
+      },
+      "defacement": {
+        "precision": 0.9169943206640454,
+        "recall": 0.8259227197607618,
+        "f1-score": 0.8690791652865187,
+        "support": 12707.0
+      },
+      "malware": {
+        "precision": 0.9372967951695309,
+        "recall": 0.9295255642561032,
+        "f1-score": 0.9333950046253469,
+        "support": 6513.0
+      },
+      "phishing": {
+        "precision": 0.5853407849938973,
+        "recall": 0.6531431438606552,
+        "f1-score": 0.6173860017616369,
+        "support": 13951.0
+      },
+      "accuracy": 0.8789744382336021,
+      "macro avg": {
+        "precision": 0.840975427491426,
+        "recall": 0.8323830536269221,
+        "f1-score": 0.8356156166356304,
+        "support": 116463.0
+      },
+      "weighted avg": {
+        "precision": 0.8836045018057966,
+        "recall": 0.8789744382336021,
+        "f1-score": 0.880804487890812,
+        "support": 116463.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        76707,
+        608,
+        292,
+        5685
+      ],
+      [
+        1542,
+        10495,
+        24,
+        646
+      ],
+      [
+        315,
+        20,
+        6054,
+        124
+      ],
+      [
+        4428,
+        322,
+        89,
+        9112
+      ]
+    ],
+    "label_order": [
+      "benign",
+      "defacement",
+      "malware",
+      "phishing"
+    ]
+  },
+  "test": {
+    "accuracy": 0.8355803678806983,
+    "macro_f1": 0.8122251321701531,
+    "macro_recall": 0.8045077003499084,
+    "per_class": {
+      "benign": {
+        "precision": 0.8848426995958324,
+        "recall": 0.8767760112698733,
+        "f1-score": 0.8807908862090228,
+        "support": 49690.0
+      },
+      "defacement": {
+        "precision": 0.9226580322319523,
+        "recall": 0.83564382831245,
+        "f1-score": 0.8769978666107089,
+        "support": 15004.0
+      },
+      "malware": {
+        "precision": 0.9187437686939183,
+        "recall": 0.8400182315405652,
+        "f1-score": 0.8776190476190476,
+        "support": 2194.0
+      },
+      "phishing": {
+        "precision": 0.5689569945625309,
+        "recall": 0.6655927302767451,
+        "f1-score": 0.6134927282418335,
+        "support": 12105.0
+      },
+      "accuracy": 0.8355803678806983,
+      "macro avg": {
+        "precision": 0.8238003737710585,
+        "recall": 0.8045077003499084,
+        "f1-score": 0.8122251321701531,
+        "support": 78993.0
+      },
+      "weighted avg": {
+        "precision": 0.844560190222159,
+        "recall": 0.8355803678806983,
+        "f1-score": 0.839021189120517,
+        "support": 78993.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        43567,
+        696,
+        61,
+        5366
+      ],
+      [
+        1796,
+        12538,
+        20,
+        650
+      ],
+      [
+        241,
+        22,
+        1843,
+        88
+      ],
+      [
+        3633,
+        333,
+        82,
+        8057
+      ]
+    ],
+    "label_order": [
+      "benign",
+      "defacement",
+      "malware",
+      "phishing"
+    ]
+  },
+  "normalization": "hostname structural features plus path/query/fragment text; omit raw hostname and leading URL scheme",
+  "candidate_only": true,
+  "live_scanner_connected": false,
+  "urls_visited": false
+}

@@ -1,0 +1,89 @@
+{
+  "model_name": "scamshield-url-tfidf-sgd-multichannel",
+  "model_version": "0.4.0-sgd-multichannel-candidate",
+  "artifact_filename": "url_model_sgd_multichannel_candidate.joblib",
+  "artifact_sha256": "e151f0ff190fe052354c177f36ef53bc1b0e04d530db0eb7d52b080eb18255f3",
+  "dataset_filename": "cleaned_urls.csv",
+  "dataset_rows_used": 641113,
+  "class_labels": [
+    "benign",
+    "defacement",
+    "malware",
+    "phishing"
+  ],
+  "normalization": "parsed numeric and one-hot hostname/URL structure; separate character TF-IDF channels for hostname, path, query, and fragment; leading scheme excluded",
+  "feature_method": "Standard-scaled numeric structure, one-hot categorical structure, and separate character TF-IDF channels for hostname, path, query, and fragment",
+  "raw_hostname_text_used": true,
+  "hostname_text_channel": "character TF-IDF, min_df=3; evaluated with hostname-grouped splits",
+  "leading_scheme_used_as_text_feature": false,
+  "feature_channels": {
+    "numeric": [
+      "host_is_ip",
+      "host_label_count",
+      "host_subdomain_depth",
+      "host_length",
+      "host_hyphen_count",
+      "host_underscore_count",
+      "host_digit_count",
+      "host_digit_ratio",
+      "host_punycode",
+      "host_longest_label",
+      "host_tld_length",
+      "host_numeric_tld",
+      "host_port_present",
+      "path_depth",
+      "path_length",
+      "path_extension_present",
+      "path_percent_encoding",
+      "query_present",
+      "query_length",
+      "query_parameter_count",
+      "query_percent_encoding",
+      "fragment_present",
+      "fragment_length"
+    ],
+    "categorical": [
+      "host_length_bucket",
+      "host_digit_ratio_bucket",
+      "host_tld_length_bucket"
+    ],
+    "text": [
+      "hostname_text",
+      "path_text",
+      "query_text",
+      "fragment_text"
+    ]
+  },
+  "classifier": {
+    "type": "SGDClassifier",
+    "loss": "log_loss",
+    "alpha": 1e-05,
+    "max_iter": 30,
+    "class_weight": "balanced",
+    "average": true
+  },
+  "random_state": 42,
+  "split_sizes": {
+    "train_rows": 445657,
+    "validation_rows": 116463,
+    "test_rows": 78993,
+    "train_host_groups": 140792,
+    "validation_host_groups": 28227,
+    "test_host_groups": 27515,
+    "hostname_group_overlap": false
+  },
+  "validation_macro_f1": 0.8565946240831928,
+  "test_macro_f1": 0.8352957987688117,
+  "test_macro_recall": 0.8131548236566309,
+  "test_accuracy": 0.8707607003152178,
+  "validation_group_overlap_verified": true,
+  "converged_or_stopped_by_sklearn": true,
+  "trained_at_utc": "2026-10-09T10:21:11.626119+00:00",
+  "training_duration_seconds": 171.19,
+  "evaluation_filename": "url_model_sgd_multichannel_candidate_evaluation.json",
+  "global_explanations_filename": "url_model_sgd_multichannel_candidate_global_explanations.json",
+  "candidate_only": true,
+  "live_scanner_connected": false,
+  "probabilities_calibrated": false,
+  "urls_visited": false
+}

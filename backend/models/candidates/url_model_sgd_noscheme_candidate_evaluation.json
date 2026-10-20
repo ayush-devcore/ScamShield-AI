@@ -1,0 +1,519 @@
+{
+  "model_name": "scamshield-url-tfidf-sgd-logloss",
+  "model_version": "0.2.0-sgd-no-scheme-candidate",
+  "dataset": "cleaned_urls.csv",
+  "dataset_rows": 641113,
+  "split_strategy": "GroupShuffleSplit by host_group",
+  "split_rows": {
+    "train": 458992,
+    "validation": 92464,
+    "test": 89657
+  },
+  "split_host_groups": {
+    "train": 137573,
+    "validation": 29480,
+    "test": 29481
+  },
+  "hostname_overlap": {
+    "train_validation": 0,
+    "train_test": 0,
+    "validation_test": 0
+  },
+  "class_order": [
+    "benign",
+    "defacement",
+    "malware",
+    "phishing"
+  ],
+  "class_counts": {
+    "benign": 428074,
+    "defacement": 95308,
+    "phishing": 94086,
+    "malware": 23645
+  },
+  "vectorizer": {
+    "analyzer": "char",
+    "ngram_range": [
+      3,
+      5
+    ],
+    "min_df": 2,
+    "max_features": 180000,
+    "dtype": "float32"
+  },
+  "classifier": {
+    "algorithm": "SGDClassifier",
+    "loss": "log_loss",
+    "penalty": "l2",
+    "alpha": 1e-05,
+    "class_weight": "balanced",
+    "max_iter": 20,
+    "tol": 0.001,
+    "average": true
+  },
+  "validation_metrics": {
+    "accuracy": 0.9021565149679875,
+    "macro_precision": 0.8972290654926705,
+    "macro_recall": 0.8484608767646561,
+    "macro_f1": 0.8693915069949576,
+    "weighted_f1": 0.9020862233576598,
+    "per_class": {
+      "benign": {
+        "precision": 0.9279072689577181,
+        "recall": 0.9576903125405265,
+        "f1-score": 0.9425635789272153,
+        "support": 61688.0
+      },
+      "defacement": {
+        "precision": 0.9611882645084153,
+        "recall": 0.775929913133863,
+        "f1-score": 0.8586804699695999,
+        "support": 13469.0
+      },
+      "malware": {
+        "precision": 0.9840425531914894,
+        "recall": 0.8861770072992701,
+        "f1-score": 0.9325492078732597,
+        "support": 4384.0
+      },
+      "phishing": {
+        "precision": 0.715778175313059,
+        "recall": 0.7740462740849647,
+        "f1-score": 0.7437727712097554,
+        "support": 12923.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        59078,
+        245,
+        19,
+        2346
+      ],
+      [
+        1640,
+        10451,
+        12,
+        1366
+      ],
+      [
+        237,
+        2,
+        3885,
+        260
+      ],
+      [
+        2713,
+        175,
+        32,
+        10003
+      ]
+    ],
+    "label_order": [
+      "benign",
+      "defacement",
+      "malware",
+      "phishing"
+    ]
+  },
+  "test_metrics": {
+    "accuracy": 0.9081722564886178,
+    "macro_precision": 0.8663547314058413,
+    "macro_recall": 0.861012851871497,
+    "macro_f1": 0.8625591401424076,
+    "weighted_f1": 0.908570137288242,
+    "per_class": {
+      "benign": {
+        "precision": 0.9360674497660799,
+        "recall": 0.9508692753474537,
+        "f1-score": 0.9434103070751957,
+        "support": 58497.0
+      },
+      "defacement": {
+        "precision": 0.9687026371627766,
+        "recall": 0.8555079641279615,
+        "f1-score": 0.9085933612907812,
+        "support": 14942.0
+      },
+      "malware": {
+        "precision": 0.8037779491133384,
+        "recall": 0.8420840064620355,
+        "f1-score": 0.8224852071005917,
+        "support": 2476.0
+      },
+      "phishing": {
+        "precision": 0.75687088958117,
+        "recall": 0.7955901615485373,
+        "f1-score": 0.7757476851030617,
+        "support": 13742.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        55623,
+        264,
+        450,
+        2160
+      ],
+      [
+        998,
+        12783,
+        4,
+        1157
+      ],
+      [
+        196,
+        0,
+        2085,
+        195
+      ],
+      [
+        2605,
+        149,
+        55,
+        10933
+      ]
+    ],
+    "label_order": [
+      "benign",
+      "defacement",
+      "malware",
+      "phishing"
+    ]
+  },
+  "global_feature_explanations": {
+    "benign": [
+      {
+        "ngram": ".com/",
+        "weight": 15.178319931030273
+      },
+      {
+        "ngram": "com/",
+        "weight": 15.068120002746582
+      },
+      {
+        "ngram": "om/",
+        "weight": 15.008563041687012
+      },
+      {
+        "ngram": ".org/",
+        "weight": 4.4878692626953125
+      },
+      {
+        "ngram": "rg/",
+        "weight": 4.425950527191162
+      },
+      {
+        "ngram": ".ca/",
+        "weight": 4.403825283050537
+      },
+      {
+        "ngram": "org/",
+        "weight": 4.3909196853637695
+      },
+      {
+        "ngram": "ca/",
+        "weight": 4.322841644287109
+      },
+      {
+        "ngram": ".net/",
+        "weight": 3.6288981437683105
+      },
+      {
+        "ngram": "net/",
+        "weight": 3.3666768074035645
+      },
+      {
+        "ngram": "et/",
+        "weight": 3.243438720703125
+      },
+      {
+        "ngram": ".ca",
+        "weight": 3.204071044921875
+      },
+      {
+        "ngram": "film",
+        "weight": 2.571230173110962
+      },
+      {
+        "ngram": "an-",
+        "weight": 2.42360782623291
+      },
+      {
+        "ngram": "uk/",
+        "weight": 2.3854846954345703
+      },
+      {
+        "ngram": "son",
+        "weight": 2.380375385284424
+      },
+      {
+        "ngram": "ilm",
+        "weight": 2.371565580368042
+      },
+      {
+        "ngram": ".uk/",
+        "weight": 2.2439935207366943
+      },
+      {
+        "ngram": "and",
+        "weight": 2.218575954437256
+      },
+      {
+        "ngram": "o.uk/",
+        "weight": 2.193899631500244
+      }
+    ],
+    "defacement": [
+      {
+        "ngram": "www.",
+        "weight": 9.8307523727417
+      },
+      {
+        "ngram": "ww.",
+        "weight": 9.781404495239258
+      },
+      {
+        "ngram": "www",
+        "weight": 9.37826156616211
+      },
+      {
+        "ngram": ".html",
+        "weight": 7.544278144836426
+      },
+      {
+        "ngram": "tml",
+        "weight": 6.133485794067383
+      },
+      {
+        "ngram": "html",
+        "weight": 6.106273174285889
+      },
+      {
+        "ngram": ".php/",
+        "weight": 4.794626712799072
+      },
+      {
+        "ngram": "php/",
+        "weight": 4.525055885314941
+      },
+      {
+        "ngram": "hp/",
+        "weight": 4.451831817626953
+      },
+      {
+        "ngram": "nl/",
+        "weight": 4.0502238273620605
+      },
+      {
+        "ngram": ".nl/",
+        "weight": 3.793616533279419
+      },
+      {
+        "ngram": ".nl",
+        "weight": 3.394721031188965
+      },
+      {
+        "ngram": "ex.ph",
+        "weight": 3.018625020980835
+      },
+      {
+        "ngram": "dex.p",
+        "weight": 2.9878454208374023
+      },
+      {
+        "ngram": "x.php",
+        "weight": 2.985443592071533
+      },
+      {
+        "ngram": "ex.p",
+        "weight": 2.96225905418396
+      },
+      {
+        "ngram": "x.ph",
+        "weight": 2.958730697631836
+      },
+      {
+        "ngram": "x.p",
+        "weight": 2.8687431812286377
+      },
+      {
+        "ngram": "/x.t",
+        "weight": 2.775829553604126
+      },
+      {
+        "ngram": "/x.tx",
+        "weight": 2.775829553604126
+      }
+    ],
+    "malware": [
+      {
+        "ngram": "exe",
+        "weight": 11.190241813659668
+      },
+      {
+        "ngram": ".exe",
+        "weight": 11.187503814697266
+      },
+      {
+        "ngram": ".ex",
+        "weight": 10.729511260986328
+      },
+      {
+        "ngram": "jpg",
+        "weight": 7.547060012817383
+      },
+      {
+        "ngram": ".jpg",
+        "weight": 7.2574310302734375
+      },
+      {
+        "ngram": ".jp",
+        "weight": 7.130634784698486
+      },
+      {
+        "ngram": "bin",
+        "weight": 5.768604755401611
+      },
+      {
+        "ngram": "/.i",
+        "weight": 5.642268180847168
+      },
+      {
+        "ngram": ".apk",
+        "weight": 4.9793548583984375
+      },
+      {
+        "ngram": "apk",
+        "weight": 4.8874640464782715
+      },
+      {
+        "ngram": ".bin",
+        "weight": 4.673359394073486
+      },
+      {
+        "ngram": ".22",
+        "weight": 4.0836286544799805
+      },
+      {
+        "ngram": ".bi",
+        "weight": 4.0635085105896
+      },
+      {
+        "ngram": ".11",
+        "weight": 3.91243839263916
+      },
+      {
+        "ngram": ".png",
+        "weight": 3.801032543182373
+      },
+      {
+        "ngram": ".ap",
+        "weight": 3.7167625427246094
+      },
+      {
+        "ngram": ".17",
+        "weight": 3.7130391597747803
+      },
+      {
+        "ngram": "5.1",
+        "weight": 3.652086019515991
+      },
+      {
+        "ngram": "png",
+        "weight": 3.6290316581726074
+      },
+      {
+        "ngram": "arm",
+        "weight": 3.5308473110198975
+      }
+    ],
+    "phishing": [
+      {
+        "ngram": "www",
+        "weight": 12.799456596374512
+      },
+      {
+        "ngram": "www.",
+        "weight": 11.52090835571289
+      },
+      {
+        "ngram": "ww.",
+        "weight": 11.412884712219238
+      },
+      {
+        "ngram": ".co",
+        "weight": 8.250062942504883
+      },
+      {
+        "ngram": ".com",
+        "weight": 7.483806133270264
+      },
+      {
+        "ngram": "com",
+        "weight": 7.123544216156006
+      },
+      {
+        "ngram": ".ml",
+        "weight": 4.68834114074707
+      },
+      {
+        "ngram": ".ga",
+        "weight": 4.526463031768799
+      },
+      {
+        "ngram": "net",
+        "weight": 4.2829742431640625
+      },
+      {
+        "ngram": ".gq",
+        "weight": 3.9648683071136475
+      },
+      {
+        "ngram": "pdf",
+        "weight": 3.5245163440704346
+      },
+      {
+        "ngram": "app",
+        "weight": 3.4889142513275146
+      },
+      {
+        "ngram": ".ru",
+        "weight": 3.454868793487549
+      },
+      {
+        "ngram": ".id",
+        "weight": 3.449549913406372
+      },
+      {
+        "ngram": ".in",
+        "weight": 3.1295275688171387
+      },
+      {
+        "ngram": "web",
+        "weight": 2.994279146194458
+      },
+      {
+        "ngram": ".pd",
+        "weight": 2.960646390914917
+      },
+      {
+        "ngram": ".pdf",
+        "weight": 2.8852174282073975
+      },
+      {
+        "ngram": ".cf",
+        "weight": 2.8777270317077637
+      },
+      {
+        "ngram": "cs.",
+        "weight": 2.795530080795288
+      }
+    ]
+  },
+  "convergence_warnings": [],
+  "converged_without_warning": true,
+  "elapsed_seconds": 89.43,
+  "created_at": "2026-10-09T09:34:59.905812+00:00",
+  "artifact_sha256": "d9678a0c9c0731b7edcfafdc2114fd198262b0b9da3a63904a9549359c13e6c8"
+}

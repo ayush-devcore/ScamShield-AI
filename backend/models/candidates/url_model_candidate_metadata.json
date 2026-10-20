@@ -1,0 +1,15 @@
+{
+  "model_name": "scamshield-url-tfidf-logreg",
+  "model_version": "0.1.0-candidate",
+  "artifact_file": "url_model_candidate.joblib",
+  "artifact_sha256": "5dc7c70f695e57735830ff5dba4e8f6d2bb83a286e43b4db9df606839f003925",
+  "class_order": [
+    "benign",
+    "defacement",
+    "malware",
+    "phishing"
+  ],
+  "created_at": "2026-10-09T08:02:05.208602+00:00",
+  "evaluation_file": "url_model_candidate_evaluation.json",
+  "deployment_status": "candidate_not_deployed"
+}
