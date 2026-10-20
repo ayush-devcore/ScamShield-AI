@@ -39,6 +39,21 @@ export interface DashboardData {
     date: string;
   }[];
 }
+
+export interface ReportSummary {
+  total_scans: number;
+  risk_distribution: { label: string; count: number }[];
+  scan_type_distribution: { name: string; count: number }[];
+  threat_type_distribution: { name: string; count: number }[];
+  recent_trends: { day: string; scans: number }[];
+  recent_scans: {
+    id: string;
+    input_type: string;
+    threat_type: string | null;
+    risk_score: number | null;
+    created_at: string;
+  }[];
+}
 export interface ScanIndicator {
   id: string;
   indicator_type: string;
@@ -124,6 +139,9 @@ export function getCurrentUser(): Promise<UserSummary> {
 
 export function getDashboard(): Promise<DashboardData> {
   return apiRequest<DashboardData>("/dashboard");
+}
+export function getReports(): Promise<ReportSummary> {
+  return apiRequest<ReportSummary>("/reports");
 }
 export function getScanDetail(scanId: string): Promise<ScanDetailData> {
   return apiRequest<ScanDetailData>(`/scans/${scanId}`);
