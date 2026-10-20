@@ -12,6 +12,7 @@ import ThreatResult from "@/pages/ThreatResult";
 import History from "@/pages/History";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
+import PrivacyToolkit from "@/pages/PrivacyToolkit";
 import NotFound from "@/pages/NotFound";
 
 function isAuthenticated() {
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="/threat/:id" element={<ThreatResult />} />
         <Route path="/history" element={<History />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/privacy-tools" element={<PrivacyToolkit />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
 

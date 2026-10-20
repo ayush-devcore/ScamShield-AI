@@ -9,6 +9,7 @@ import {
   ScanLine,
   Settings,
   ShieldCheck,
+  ShieldPlus,
 } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router";
@@ -34,6 +35,7 @@ const navigation = [
     items: [
       { label: "Scan History", to: "/history", icon: History },
       { label: "Threat Reports", to: "/reports", icon: FileText },
+      { label: "Privacy Toolkit", to: "/privacy-tools", icon: ShieldPlus },
     ],
   },
   {
