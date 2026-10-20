@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.core.dependencies import get_current_user
 from app.core.rate_limit import (
     LOGIN_ATTEMPT_LIMIT,
+    RateLimitUnavailable,
     clear_login_attempts,
     get_login_attempts,
     login_is_blocked,
@@ -31,6 +32,14 @@ router = APIRouter(
     prefix="/auth",
     tags=["Authentication"],
 )
+
+
+def _rate_limit_unavailable() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail="Authentication is temporarily unavailable. Please try again later.",
+        headers={"Retry-After": "30"},
+    )
 
 
 @router.post(
@@ -97,7 +106,10 @@ async def login_user(
     # every other user with the same account email.
     rate_limit_key = f"scamshield:login:{email}:{client_ip}"
 
-    attempts = await get_login_attempts(rate_limit_key)
+    try:
+        attempts = await get_login_attempts(rate_limit_key)
+    except RateLimitUnavailable:
+        raise _rate_limit_unavailable() from None
 
     if login_is_blocked(attempts):
         raise HTTPException(
@@ -120,7 +132,10 @@ async def login_user(
         payload.password,
         user.password_hash,
     ):
-        failed_attempts = await record_failed_login(rate_limit_key)
+        try:
+            failed_attempts = await record_failed_login(rate_limit_key)
+        except RateLimitUnavailable:
+            raise _rate_limit_unavailable() from None
 
         if failed_attempts >= LOGIN_ATTEMPT_LIMIT:
             raise HTTPException(
@@ -142,7 +157,10 @@ async def login_user(
         )
 
     # Successful authentication clears previous failures.
-    await clear_login_attempts(rate_limit_key)
+    try:
+        await clear_login_attempts(rate_limit_key)
+    except RateLimitUnavailable:
+        raise _rate_limit_unavailable() from None
 
     access_token = create_access_token(str(user.id))
 

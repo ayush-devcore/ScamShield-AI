@@ -1,4 +1,5 @@
 from redis.asyncio import Redis
+from redis.exceptions import RedisError
 
 from app.core.config import settings
 
@@ -12,33 +13,49 @@ redis_client = Redis.from_url(
     decode_responses=True,
 )
 
+_INCREMENT_WITH_WINDOW = """
+local attempts = redis.call('INCR', KEYS[1])
+if attempts == 1 then
+    redis.call('EXPIRE', KEYS[1], ARGV[1])
+end
+return attempts
+"""
+
+
+class RateLimitUnavailable(Exception):
+    """Raised when Redis cannot provide a trustworthy rate-limit state."""
+
 
 async def get_login_attempts(key: str) -> int:
     """Return the current failed-attempt count for a key."""
-    value = await redis_client.get(key)
-
-    if value is None:
-        return 0
-
-    return int(value)
+    try:
+        value = await redis_client.get(key)
+        return 0 if value is None else int(value)
+    except (RedisError, TypeError, ValueError) as exc:
+        raise RateLimitUnavailable from exc
 
 
 async def record_failed_login(key: str) -> int:
-    """Increment failed attempts and set the expiry on the first attempt."""
-    attempts = await redis_client.incr(key)
-
-    if attempts == 1:
-        await redis_client.expire(
-            key,
-            LOGIN_ATTEMPT_WINDOW_SECONDS,
+    """Atomically increment failures and set the first-attempt window."""
+    try:
+        return int(
+            await redis_client.eval(
+                _INCREMENT_WITH_WINDOW,
+                1,
+                key,
+                LOGIN_ATTEMPT_WINDOW_SECONDS,
+            )
         )
-
-    return attempts
+    except (RedisError, TypeError, ValueError) as exc:
+        raise RateLimitUnavailable from exc
 
 
 async def clear_login_attempts(key: str) -> None:
     """Clear failed-login attempts after a successful login."""
-    await redis_client.delete(key)
+    try:
+        await redis_client.delete(key)
+    except RedisError as exc:
+        raise RateLimitUnavailable from exc
 
 
 def login_is_blocked(attempts: int) -> bool:
