@@ -15,6 +15,9 @@ export default function History() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     let cancelled = false;
@@ -42,20 +45,42 @@ export default function History() {
     };
   }, []);
 
+  const scanTypes = useMemo(
+    () => [...new Set(scans.map((scan) => scan.input_type))].sort(),
+    [scans],
+  );
+  const statuses = useMemo(
+    () => [...new Set(scans.map((scan) => scan.status))].sort(),
+    [scans],
+  );
+
   const filteredScans = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return scans;
-
     return scans.filter((scan) => {
       const haystack = [
         scan.id,
         scan.input_type,
         scan.threat_type ?? "",
+        scan.redacted_preview ?? "",
         scan.status,
-      ].join(" ");
-      return haystack.toLowerCase().includes(normalized);
+        scan.risk_score ?? "",
+        scan.confidence ?? "",
+        scan.created_at,
+        formatDate(scan.created_at),
+      ].join(" ").toLowerCase();
+      return (
+        (!normalized || haystack.includes(normalized)) &&
+        (typeFilter === "all" || scan.input_type === typeFilter) &&
+        (statusFilter === "all" || scan.status === statusFilter)
+      );
     });
-  }, [query, scans]);
+  }, [query, scans, statusFilter, typeFilter]);
+
+  function clearFilters() {
+    setQuery("");
+    setTypeFilter("all");
+    setStatusFilter("all");
+  }
 
   return (
     <div className="space-y-6">
@@ -76,10 +101,51 @@ export default function History() {
               className="h-10 w-full rounded-xl border border-slate-800 bg-slate-950/30 pl-10 pr-3 text-xs text-white placeholder:text-slate-700 focus:border-cyan-300/20 focus:outline-none"
             />
           </div>
-          <button className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-800 px-4 text-xs text-slate-400 hover:border-cyan-400/20 hover:text-white">
+          <button
+            type="button"
+            aria-expanded={filtersOpen}
+            aria-controls="history-filters"
+            onClick={() => setFiltersOpen((open) => !open)}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-800 px-4 text-xs text-slate-400 hover:border-cyan-400/20 hover:text-white"
+          >
             <Filter className="h-3.5 w-3.5" /> Filters
           </button>
         </div>
+
+        {filtersOpen && (
+          <div id="history-filters" className="grid gap-3 border-b border-slate-800/60 p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <label className="space-y-1.5 text-[10px] uppercase tracking-wider text-slate-600">
+              Scan type
+              <select
+                value={typeFilter}
+                onChange={(event) => setTypeFilter(event.target.value)}
+                className="block h-10 w-full rounded-xl border border-slate-800 bg-slate-950/30 px-3 text-xs normal-case tracking-normal text-white focus:border-cyan-300/20 focus:outline-none"
+              >
+                <option value="all">All types</option>
+                {scanTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+              </select>
+            </label>
+            <label className="space-y-1.5 text-[10px] uppercase tracking-wider text-slate-600">
+              Status / classification
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="block h-10 w-full rounded-xl border border-slate-800 bg-slate-950/30 px-3 text-xs normal-case tracking-normal text-white focus:border-cyan-300/20 focus:outline-none"
+              >
+                <option value="all">All statuses</option>
+                {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!query && typeFilter === "all" && statusFilter === "all"}
+              className="h-10 rounded-xl border border-slate-800 px-4 text-xs text-slate-400 hover:border-cyan-400/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Clear
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex min-h-[200px] items-center justify-center">
@@ -93,8 +159,12 @@ export default function History() {
         ) : filteredScans.length === 0 ? (
           <div className="flex min-h-[200px] items-center justify-center px-5 text-center">
             <div>
-              <p className="text-sm text-slate-400">No scans found.</p>
-              <p className="mt-1 text-xs text-slate-600">Your authenticated scan history will appear here.</p>
+              <p className="text-sm text-slate-400">{scans.length === 0 ? "No scans found." : "No scans match these search and filter criteria."}</p>
+              {scans.length === 0 ? (
+                <p className="mt-1 text-xs text-slate-600">Your authenticated scan history will appear here.</p>
+              ) : (
+                <button type="button" onClick={clearFilters} className="mt-2 text-xs text-cyan-300 hover:text-cyan-200">Clear search and filters</button>
+              )}
             </div>
           </div>
         ) : (
@@ -112,6 +182,7 @@ export default function History() {
                   <tr key={scan.id} className="border-b border-slate-800/40 hover:bg-slate-900/30">
                     <td className="px-5 py-4">
                       <Link to={`/threat/${scan.id}`} className="text-xs font-medium text-slate-200 hover:text-cyan-300">{scan.threat_type ?? scan.input_type}</Link>
+                      {scan.redacted_preview && <p className="mt-1 max-w-xs truncate text-[10px] text-slate-600">{scan.redacted_preview}</p>}
                       <p className="mt-1 text-[10px] text-slate-700">{scan.id}</p>
                     </td>
                     <td className="px-5 py-4 text-xs text-slate-500">{scan.input_type}</td>

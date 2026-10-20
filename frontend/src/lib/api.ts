@@ -212,6 +212,7 @@ export function createScreenshotScan(file: File) {
 export interface ScanHistoryItem {
   id: string;
   input_type: string;
+  redacted_preview?: string | null;
   status:
     | "queued"
     | "analyzing"
