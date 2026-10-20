@@ -1,4 +1,3 @@
-import hashlib
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -25,10 +24,10 @@ from app.schemas.scans import (
     URLScanRequest,
 )
 from app.services.risk_engine import analyze_message, analyze_url
+from app.services.scan_privacy import safe_scan_preview, sanitize_analysis_payload
 from app.services.screenshot_analysis import (
     ScreenshotTooLargeError,
     analyze_screenshot_bytes,
-    hash_uploaded_bytes,
     read_screenshot_upload,
     validate_screenshot_upload,
 )
@@ -63,8 +62,8 @@ def _persist_analysis_result(
             model_version=analysis.model_version,
             prediction=analysis.prediction,
             probability=analysis.risk_score / 100,
-            features=analysis.features,
-            explanation=analysis.explanation,
+            features=sanitize_analysis_payload(analysis.features),
+            explanation=sanitize_analysis_payload(analysis.explanation),
         )
     )
 
@@ -75,7 +74,7 @@ def _persist_analysis_result(
                 indicator_type=signal.indicator_type,
                 description=signal.description,
                 severity=signal.severity,
-                evidence=signal.evidence,
+                evidence=sanitize_analysis_payload(signal.evidence),
             )
         )
 
@@ -92,18 +91,13 @@ async def create_message_scan(
 ) -> Scan:
     message = payload.message.strip()
 
-    input_hash = hashlib.sha256(
-        message.encode("utf-8")
-    ).hexdigest()
-
     analysis = analyze_message(message)
 
     scan = Scan(
         user_id=current_user.id,
         input_type="message",
         status="analyzing",
-        input_hash=input_hash,
-        redacted_preview=None,
+        redacted_preview=safe_scan_preview("message"),
     )
 
     db.add(scan)
@@ -134,8 +128,6 @@ async def create_url_scan(
             detail="URL is required.",
         )
 
-    input_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()
-
     try:
         analysis = analyze_url(url)
     except ValueError as exc:
@@ -148,8 +140,7 @@ async def create_url_scan(
         user_id=current_user.id,
         input_type="url",
         status="analyzing",
-        input_hash=input_hash,
-        redacted_preview=url[:240],
+        redacted_preview=safe_scan_preview("url", url),
     )
 
     db.add(scan)
@@ -180,8 +171,6 @@ async def create_qr_scan(
             detail="QR payload is required.",
         )
 
-    input_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
-
     if text.startswith(("http://", "https://")):
         try:
             analysis = analyze_url(text)
@@ -197,8 +186,7 @@ async def create_qr_scan(
         user_id=current_user.id,
         input_type="qr",
         status="analyzing",
-        input_hash=input_hash,
-        redacted_preview=text[:240],
+        redacted_preview=safe_scan_preview("qr"),
     )
 
     db.add(scan)
@@ -253,15 +241,11 @@ async def create_screenshot_scan(
             detail=str(exc),
         ) from exc
 
-    input_hash = hash_uploaded_bytes(content)
-    preview = (file.filename or "screenshot")[:240]
-
     scan = Scan(
         user_id=current_user.id,
         input_type="screenshot",
         status="analyzing",
-        input_hash=input_hash,
-        redacted_preview=preview,
+        redacted_preview=safe_scan_preview("screenshot"),
     )
 
     db.add(scan)
@@ -289,7 +273,10 @@ async def get_scan_history(
         .limit(100)
     )
 
-    return list(result.scalars().all())
+    scans = list(result.scalars().all())
+    for scan in scans:
+        scan.redacted_preview = safe_scan_preview(scan.input_type, scan.redacted_preview)
+    return scans
 
 
 @router.get(
@@ -342,8 +329,8 @@ async def get_scan_detail(
             model_version=analysis_result.model_version,
             prediction=analysis_result.prediction,
             probability=analysis_result.probability,
-            features=analysis_result.features,
-            explanation=analysis_result.explanation,
+            features=sanitize_analysis_payload(analysis_result.features),
+            explanation=sanitize_analysis_payload(analysis_result.explanation),
             created_at=analysis_result.created_at,
         )
 
@@ -353,7 +340,7 @@ async def get_scan_detail(
             indicator_type=indicator.indicator_type,
             description=indicator.description,
             severity=indicator.severity,
-            evidence=indicator.evidence,
+            evidence=sanitize_analysis_payload(indicator.evidence),
         )
         for indicator in indicators
     ]

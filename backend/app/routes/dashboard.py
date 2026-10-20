@@ -14,6 +14,7 @@ from app.schemas.dashboard import (
     RecentScanItem,
     ThreatDistributionItem,
 )
+from app.services.scan_privacy import safe_scan_preview
 
 
 router = APIRouter(
@@ -47,13 +48,8 @@ def display_status(scan: Scan) -> str:
     return "safe"
 
 def scan_title(scan: Scan) -> str:
-    """Create a safe display title without exposing raw input."""
-    if scan.redacted_preview:
-        preview = scan.redacted_preview.strip().replace("\n", " ")
-        if preview:
-            return preview[:80]
-
-    return f"{scan.input_type.title()} scan"
+    """Return a display title without exposing user-supplied content."""
+    return safe_scan_preview(scan.input_type, scan.redacted_preview)[:80]
 
 
 @router.get(

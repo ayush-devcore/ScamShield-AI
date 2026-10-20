@@ -1,4 +1,3 @@
-import hashlib
 import io
 import re
 from pathlib import Path
@@ -183,7 +182,3 @@ def analyze_screenshot_bytes(image_bytes: bytes, *, file_name: str | None = None
         model_version="1.0.0",
         source="ocr_structural_analysis",
     )
-
-
-def hash_uploaded_bytes(image_bytes: bytes) -> str:
-    return hashlib.sha256(image_bytes).hexdigest()
