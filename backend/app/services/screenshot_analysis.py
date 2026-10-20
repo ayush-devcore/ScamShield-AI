@@ -1,35 +1,80 @@
 import hashlib
 import io
-import os
 import re
-import shutil
+from pathlib import Path
 from typing import Any
+
+from PIL import Image, UnidentifiedImageError
 
 from app.services.risk_engine import RiskAnalysis, _extract_urls, analyze_message, analyze_url
 
-SUPPORTED_IMAGE_TYPES = {
-    "image/png",
-    "image/jpeg",
-    "image/webp",
-}
-SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
+SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
+MAX_IMAGE_PIXELS = 20_000_000
 
 
-def validate_screenshot_upload(filename: str | None, content_type: str | None, content_length: int) -> None:
-    if content_length <= 0:
+class ScreenshotTooLargeError(ValueError):
+    pass
+
+
+async def read_screenshot_upload(upload, max_bytes: int) -> bytes:
+    """Read an upload in bounded chunks and always release its temporary file."""
+    try:
+        chunks: list[bytes] = []
+        total_bytes = 0
+        while True:
+            chunk = await upload.read(min(64 * 1024, max_bytes - total_bytes + 1))
+            if not chunk:
+                break
+            total_bytes += len(chunk)
+            if total_bytes > max_bytes:
+                raise ScreenshotTooLargeError("The uploaded image exceeds the configured size limit.")
+            chunks.append(chunk)
+        return b"".join(chunks)
+    finally:
+        await upload.close()
+
+
+def validate_screenshot_upload(
+    image_bytes: bytes,
+    filename: str | None,
+    content_type: str | None,
+) -> None:
+    if not image_bytes:
         raise ValueError("The uploaded image is empty.")
 
-    limit_bytes = 8 * 1024 * 1024
-    if content_length > limit_bytes:
-        raise ValueError("The uploaded image is too large. Please use a file smaller than 8 MB.")
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as image:
+            image_format = image.format
+            if image_format not in SUPPORTED_IMAGE_FORMATS:
+                raise ValueError("Unsupported image format. Please upload a PNG, JPEG, or WebP image.")
 
-    if filename:
-        lowered = filename.lower()
-        if not any(lowered.endswith(ext) for ext in (".png", ".jpg", ".jpeg", ".webp")):
-            raise ValueError("Unsupported file type. Please upload a PNG, JPEG, or WebP image.")
+            width, height = image.size
+            if width <= 0 or height <= 0 or width * height > MAX_IMAGE_PIXELS:
+                raise ValueError("The uploaded image dimensions are too large to process safely.")
 
-    if content_type and content_type.lower() not in SUPPORTED_IMAGE_TYPES:
-        raise ValueError("Unsupported image format. Please upload a PNG, JPEG, or WebP image.")
+            expected_extensions = {
+                "PNG": {".png"},
+                "JPEG": {".jpg", ".jpeg"},
+                "WEBP": {".webp"},
+            }
+            if filename and Path(filename).suffix.lower() not in expected_extensions[image_format]:
+                raise ValueError("The filename extension does not match the image content.")
+
+            expected_content_types = {
+                "PNG": "image/png",
+                "JPEG": "image/jpeg",
+                "WEBP": "image/webp",
+            }
+            if content_type and content_type.lower() != expected_content_types[image_format]:
+                raise ValueError("The content type does not match the image content.")
+
+            image.verify()
+    except ValueError:
+        raise
+    except (Image.DecompressionBombError, Image.DecompressionBombWarning) as exc:
+        raise ValueError("The uploaded image dimensions are too large to process safely.") from exc
+    except (UnidentifiedImageError, OSError, SyntaxError) as exc:
+        raise ValueError("The uploaded file is not a valid supported image.") from exc
 
 
 def _safe_ocr_text(raw_text: str) -> str:

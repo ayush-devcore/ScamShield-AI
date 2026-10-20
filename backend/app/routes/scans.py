@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.dependencies import get_current_user
 from app.db.models import (
     AnalysisResult,
@@ -25,8 +26,10 @@ from app.schemas.scans import (
 )
 from app.services.risk_engine import analyze_message, analyze_url
 from app.services.screenshot_analysis import (
+    ScreenshotTooLargeError,
     analyze_screenshot_bytes,
     hash_uploaded_bytes,
+    read_screenshot_upload,
     validate_screenshot_upload,
 )
 
@@ -218,11 +221,19 @@ async def create_screenshot_scan(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Scan:
-    content = await file.read()
-    content_type = file.content_type or "application/octet-stream"
+    try:
+        content = await read_screenshot_upload(
+            file,
+            settings.max_upload_size_mb * 1024 * 1024,
+        )
+    except ScreenshotTooLargeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=str(exc),
+        ) from exc
 
     try:
-        validate_screenshot_upload(file.filename, content_type, len(content))
+        validate_screenshot_upload(content, file.filename, file.content_type)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
