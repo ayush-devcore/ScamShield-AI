@@ -11,28 +11,32 @@ import { StatCard } from "@/components/ui/StatCard";
 import { ThreatActivity } from "@/components/dashboard/ThreatActivity";
 import { ThreatDistribution } from "@/components/dashboard/ThreatDistribution";
 import { RecentScans } from "@/components/dashboard/RecentScans";
-import { getDashboard, type DashboardData } from "@/lib/api";
+import { getCurrentUser, getDashboard, type DashboardData, type UserSummary } from "@/lib/api";
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
+    let latestRequest = 0;
 
-    async function loadDashboard() {
+    async function loadDashboard(showLoading = true) {
+      const requestId = ++latestRequest;
       try {
-        setLoading(true);
+        if (showLoading) setLoading(true);
         setError("");
 
-        const data = await getDashboard();
+        const [data, user] = await Promise.all([getDashboard(), getCurrentUser()]);
 
-        if (!cancelled) {
+        if (!cancelled && requestId === latestRequest) {
           setDashboard(data);
+          setCurrentUser(user);
         }
       } catch (err) {
-        if (!cancelled) {
+        if (!cancelled && requestId === latestRequest) {
           setError(
             err instanceof Error
               ? err.message
@@ -40,16 +44,21 @@ export default function Dashboard() {
           );
         }
       } finally {
-        if (!cancelled) {
+        if (!cancelled && requestId === latestRequest) {
           setLoading(false);
         }
       }
     }
 
     loadDashboard();
+    const refreshWhenFocused = () => {
+      if (document.visibilityState === "visible") void loadDashboard(false);
+    };
+    window.addEventListener("focus", refreshWhenFocused);
 
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", refreshWhenFocused);
     };
   }, []);
 
@@ -94,11 +103,11 @@ export default function Dashboard() {
           </div>
 
           <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-            Good evening, Ayush 👋
+            Hello, {currentUser?.name ?? "there"} 👋
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Stay protected. Stay informed.
+            {currentUser?.email ?? "Stay protected. Stay informed."}
           </p>
         </div>
 

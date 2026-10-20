@@ -117,6 +117,7 @@ async function apiRequest<T>(
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
+    cache: options.cache ?? "no-store",
   });
 
   const data = await response.json().catch(() => null);
