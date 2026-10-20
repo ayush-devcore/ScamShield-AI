@@ -1,21 +1,35 @@
 # ScamShield AI
 
-ScamShield AI provides a React/Vite client and a FastAPI backend for authenticated message-risk scans.
+ScamShield AI is a React/TypeScript/Vite frontend with a FastAPI backend, PostgreSQL persistence, and Redis-backed login rate limiting.
 
-## Run locally (Windows PowerShell)
+## Local development on Windows PowerShell
 
-Configure `backend/.env` with the database, Redis, JWT secret, and `FRONTEND_ORIGIN=http://localhost:5173` settings. The backend loads this file from its working directory. Set `frontend/.env.local` to point `VITE_API_BASE_URL` at the backend API (normally `http://127.0.0.1:8000/api/v1`).
+### Prerequisites
 
-In one terminal:
+- Python and Node.js/npm installed.
+- A reachable PostgreSQL database with the application's schema already initialized. These steps do not create databases or run migrations.
+- A reachable Redis instance for login rate limiting. `REDIS_URL` is required by backend configuration; login requests need Redis available.
+
+### Configure and run the backend
+
+From the repository root, open a PowerShell terminal:
 
 ```powershell
 cd backend
-py -m venv .venv  # Skip if the backend virtual environment already exists.
+if (-not (Test-Path .env)) { Copy-Item ..\.env.example .env }
+notepad .env
+py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-In a second terminal:
+Replace the unmistakable placeholders in `backend/.env` with local values. The example uses `127.0.0.1` for local PostgreSQL and Redis endpoints; adjust these endpoints to match your services. `backend/app/core/config.py` loads `.env` relative to the backend working directory. Keep `.env` private and do not commit it.
+
+The interactive API documentation is at <http://127.0.0.1:8000/docs>. The API health endpoint is at <http://127.0.0.1:8000/api/v1/health>.
+
+### Run the frontend
+
+Open a second PowerShell terminal from the repository root:
 
 ```powershell
 cd frontend
@@ -23,23 +37,14 @@ npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite (normally http://localhost:5173). The API health check is at `http://127.0.0.1:8000/api/v1/health` and the interactive API docs are at `http://127.0.0.1:8000/docs`.
+Open the local URL printed by Vite (configured for port 5173). The frontend reads `VITE_API_BASE_URL`; when it is unset, `frontend/src/lib/api.ts` uses `http://127.0.0.1:8000/api/v1`. To override it, create `frontend/.env.local` with:
 
-## Main routes
+```dotenv
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
 
-- `/` — landing page
-- `/login` — login
-- `/dashboard` — authenticated security dashboard
-- `/scan` — scan center
-- `/scan/message` — message scanner
-- `/scan/url` — URL scanner
-- `/scan/qr` — QR scanner
-- `/scan/screenshot` — screenshot scanner
-- `/threat/:id` — persisted scan details
-- `/history` — scan history
-- `/reports` — threat report
-- `/settings` — settings
+`frontend/package.json` is the canonical frontend package manifest: its `dev`, `build`, and `preview` scripts are run from `frontend/`, alongside `frontend/vite.config.ts`. Root-level package and TypeScript configuration files also exist; these instructions do not use or modify them. The root `docker-compose.yml` is empty, so this repository currently has no usable Compose setup documented here.
 
-## Current scope
+## Scope notes
 
-Authentication, dashboard data, scan history, and message analysis use the FastAPI backend. The backend issues JWT access tokens, uses PostgreSQL for user and scan data, and Redis for login rate limits. URL, QR, and screenshot pages remain UI prototypes and do not yet have corresponding analysis APIs.
+The backend provides the scan and account APIs used by the frontend; `/docs` lists the routes available in the running application. Configuration includes optional external-service API key settings, but this local setup does not configure or claim any external threat-intelligence integration. The setup steps above cover local development only, not production deployment.
