@@ -101,6 +101,7 @@ export interface SandboxJob {
   report: {
     classification?: string;
     risk_score?: number;
+    reachability?: "reachable" | "unreachable" | "timed_out" | "blocked" | "unknown";
     findings?: { id: string; rule: string; title: string; severity: string; observation_refs: string[]; count?: number }[];
     conclusion?: string;
     limitations?: string[];
@@ -143,7 +144,7 @@ export interface ScanAnalysis {
 export interface ScanDetailData {
   id: string;
   input_type: string;
-  status: "queued" | "analyzing" | "safe" | "medium" | "high" | "critical";
+  status: "queued" | "analyzing" | "safe" | "medium" | "high" | "critical" | "runtime_unavailable";
   risk_score: number | null;
   confidence: number | null;
   threat_type: string | null;
@@ -318,7 +319,8 @@ export interface MessageScanResponse {
     | "safe"
     | "medium"
     | "high"
-    | "critical";
+    | "critical"
+    | "runtime_unavailable";
   risk_score: number | null;
   confidence: number | null;
   threat_type: string | null;
@@ -326,6 +328,32 @@ export interface MessageScanResponse {
   created_at: string;
   analysis?: ScanAnalysis | null;
   indicators?: ScanIndicator[] | null;
+}
+
+export interface UrlDecisionResponse {
+  outcome: "dataset_match" | "sandbox_queued" | "runtime_unavailable" | "sandbox_blocked";
+  dataset_lookup: {
+    status: "known_malicious" | "non_malicious_label" | "not_listed" | "ambiguous";
+    match_type?: "exact_url" | "scheme_agnostic_path" | null;
+    source_label?: string | null;
+    dataset_name?: string | null;
+    record_source?: string | null;
+    dataset_fingerprint?: string | null;
+    imported_at?: string | null;
+    recorded_at?: string | null;
+  };
+  risk_assessment?: {
+    verdict: "known_malicious" | "suspicious" | "unverified";
+    risk_score?: number | null;
+    method: string;
+    explanation: string;
+    indicators: string[];
+    limitations: string[];
+  } | null;
+  reachability: "not_checked" | "pending" | "reachable" | "unreachable" | "timed_out" | "blocked" | "unknown" | "runtime_unavailable";
+  reason?: string | null;
+  scan?: MessageScanResponse | null;
+  sandbox_job?: SandboxJob | null;
 }
 
 export function createMessageScan(message: string) {
@@ -337,6 +365,13 @@ export function createMessageScan(message: string) {
 
 export function createUrlScan(url: string) {
   return apiRequest<MessageScanResponse>("/scans/url", {
+    method: "POST",
+    body: JSON.stringify({ url }),
+  });
+}
+
+export function createUrlDecision(url: string) {
+  return apiRequest<UrlDecisionResponse>("/scans/url/decision", {
     method: "POST",
     body: JSON.stringify({ url }),
   });
@@ -383,7 +418,8 @@ export interface ScanHistoryItem {
     | "safe"
     | "medium"
     | "high"
-    | "critical";
+    | "critical"
+    | "runtime_unavailable";
   risk_score: number | null;
   confidence: number | null;
   threat_type: string | null;

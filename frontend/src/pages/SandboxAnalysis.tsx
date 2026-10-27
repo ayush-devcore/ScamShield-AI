@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AlertTriangle, FileSearch, Globe2, RefreshCw, ShieldAlert, X } from "lucide-react";
+import { useLocation } from "react-router";
 import {
   cancelSandboxJob,
   getSandboxJob,
@@ -22,9 +23,11 @@ function isActive(state?: string) {
 }
 
 export default function SandboxAnalysis() {
+  const location = useLocation();
+  const initialJob = (location.state as { initialJob?: SandboxJob } | null)?.initialJob;
   const [runtime, setRuntime] = useState<SandboxStatus | null>(null);
-  const [jobs, setJobs] = useState<SandboxJob[]>([]);
-  const [selected, setSelected] = useState<SandboxJob | null>(null);
+  const [jobs, setJobs] = useState<SandboxJob[]>(() => initialJob ? [initialJob] : []);
+  const [selected, setSelected] = useState<SandboxJob | null>(initialJob ?? null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -39,12 +42,15 @@ export default function SandboxAnalysis() {
     else setRuntime(null);
     if (jobsResult.status === "fulfilled") {
       setJobs(jobsResult.value);
-      setSelected((current) => current ? jobsResult.value.find((job) => job.id === current.id) ?? current : null);
+      setSelected((current) => {
+        const currentId = current?.id ?? initialJob?.id;
+        return currentId ? jobsResult.value.find((job) => job.id === currentId) ?? current ?? initialJob ?? null : null;
+      });
     }
     const failure = jobsResult.status === "rejected" ? jobsResult.reason : statusResult.status === "rejected" ? statusResult.reason : null;
     if (failure) setError(failure instanceof Error ? failure.message : "Unable to load sandbox data.");
     setLoading(false);
-  }, []);
+  }, [initialJob]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
@@ -170,7 +176,7 @@ export default function SandboxAnalysis() {
               {isActive(selected.state) && <ol className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3" aria-label="Actual worker stages">{PIPELINE_STATES.slice(0, 5).map((stage, index) => <li key={stage} className={`rounded-lg border px-2 py-2 text-xs ${stageIndex >= index ? "border-cyan-300/35 text-cyan-100" : "border-slate-800 text-slate-600"}`}>{LABELS[stage]}</li>)}</ol>}
               {selected.error_code && <p role="status" className="mt-4 rounded-lg border border-amber-300/20 bg-amber-300/[0.04] p-3 text-sm text-amber-100">The job ended with a safe failure state ({selected.error_code}). No raw target details are shown.</p>}
               {report && <div className="mt-4 space-y-4">
-                <div><p className="text-xs uppercase tracking-wide text-slate-500">Conclusion</p><p className="mt-1 text-sm text-slate-200">{report.conclusion}</p><p className="mt-1 text-xs text-slate-400">Classification: {report.classification}</p></div>
+                <div><p className="text-xs uppercase tracking-wide text-slate-500">Conclusion</p><p className="mt-1 text-sm text-slate-200">{report.conclusion}</p><p className="mt-1 text-xs text-slate-400">Risk verdict: {report.classification}</p><p className="mt-1 text-xs text-slate-400">Reachability: {report.reachability ?? "unknown"}</p></div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <p className="rounded-lg bg-slate-900/70 p-3 text-xs text-slate-300">Initial origin: <span className="font-mono">{String(observations.initial_origin ?? "Unavailable")}</span></p>
                   <p className="rounded-lg bg-slate-900/70 p-3 text-xs text-slate-300">Final origin: <span className="font-mono">{String(observations.final_origin ?? "Unavailable")}</span></p>

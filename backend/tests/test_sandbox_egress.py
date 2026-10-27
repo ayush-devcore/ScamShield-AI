@@ -89,7 +89,18 @@ class SandboxAnalysisTests(unittest.TestCase):
         report = analyze_observations({"initial_origin": "https://example.com", "final_origin": "https://example.com", "forms": [], "download_attempt_count": 0})
         self.assertEqual(report["findings"], [])
         self.assertEqual(report["risk_score"], 0)
-        self.assertEqual(report["classification"], "safe")
+        self.assertEqual(report["classification"], "unverified")
+
+    def test_reachability_is_reported_separately_from_risk(self):
+        cases = [
+            ({"navigation": {"http_status": 404}}, "reachable"),
+            ({"navigation": {"error_type": "TimeoutError"}}, "timed_out"),
+            ({"navigation": {"error_type": "Error"}}, "unreachable"),
+            ({"navigation": {"error_type": "Error"}, "blocked_request_count": 1}, "blocked"),
+        ]
+        for observations, expected in cases:
+            with self.subTest(reachability=expected):
+                self.assertEqual(analyze_observations(observations)["reachability"], expected)
 
     def test_form_on_redirected_final_origin_is_not_misclassified_as_cross_origin(self):
         report = analyze_observations({

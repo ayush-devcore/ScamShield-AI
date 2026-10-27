@@ -89,6 +89,27 @@ The worker uses a PostgreSQL advisory lock so only one supervisor is active. A j
 
 Playwright and mitmproxy image versions are pinned in the Dockerfiles. The network-verification and harmless browser test results must be confirmed on the target Docker Desktop machine before enabling this capability; the UI and API remain fail-closed until then.
 
+## Dataset-first URL analysis
+
+The hybrid URL decision endpoint checks the imported exact-URL index before considering sandbox execution. A malicious label returns a dataset-sourced finding without opening the URL. A benign-label row is not a safe verdict and continues to sandbox analysis. URLs in the source that omit their scheme can match only when hostname, path, and query all match; conflicting labels are treated as ambiguous. No domain-only matching is used.
+
+The local source is `backend/data/urls/malicious_phish.csv` (651,191 rows; columns `url,type`). It is ignored by Git and must stay out of commits. The label mapping is explicit: `phishing`, `malware`, and `defacement` are malicious; `benign` is not a malicious match. The source has no per-record source or timestamp fields. Results preserve the dataset filename, SHA-256 fingerprint, source label, and import time; a per-record date is unavailable.
+
+The importer stages rows in a temporary SQLite file and writes only indexed SHA-256 URL keys and label/provenance fields to PostgreSQL. It is repeatable: reimporting the same dataset name atomically replaces that dataset's rows. From `backend/`, preview counts without database writes:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.import_url_dataset --dry-run
+```
+
+After confirming the configured database is the intended environment, manually apply pending migrations if needed, then import:
+
+```powershell
+.\.venv\Scripts\python.exe -m alembic upgrade head
+.\.venv\Scripts\python.exe -m scripts.import_url_dataset data/urls/malicious_phish.csv
+```
+
+For Render, provide the ignored dataset through the deployment's approved private artifact/storage process, then run the same importer against its persistent PostgreSQL database. Do not commit the dataset. Do not enable sandbox flags in Render based on the Windows Docker Desktop installation: the repository has no verified Render worker/proxy deployment or Render instance-level network probe, so deployed sandbox execution remains unverified and must stay disabled until that boundary is demonstrated. Render private networking connects services within the same region, but does not by itself prove that a nested disposable browser container can be provisioned with the required restricted egress.
+
 ## Scope notes
 
 The backend provides the scan and account APIs used by the frontend; `/docs` lists the routes available in the running application. Configuration includes optional external-service API key settings, but this local setup does not configure or claim any external threat-intelligence integration. The setup steps above cover local development only, not production deployment.

@@ -6,7 +6,7 @@ import { RiskGauge } from "@/components/ui/RiskGauge";
 import { Indicator } from "@/components/threat/Indicator";
 import { RecommendationCard } from "@/components/threat/RecommendationCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { getScanDetail, type MessageScanResponse, type ScanDetailData } from "@/lib/api";
+import { getScanDetail, type MessageScanResponse, type ScanDetailData, type UrlDecisionResponse } from "@/lib/api";
 
 function formatIndicatorTitle(type: string) {
   return type
@@ -28,7 +28,8 @@ function formatDate(date: string) {
   });
 }
 
-function getRiskLabel(score: number | null) {
+function getRiskLabel(score: number | null, status?: string) {
+  if (status === "runtime_unavailable") return "UNVERIFIED";
   if (score === null) return "PENDING";
   if (score >= 80) return "CRITICAL";
   if (score >= 60) return "HIGH RISK";
@@ -40,7 +41,9 @@ export default function ThreatResult() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const inlineScan = (location.state as { inlineScan?: MessageScanResponse } | null)?.inlineScan;
+  const routeState = location.state as { inlineScan?: MessageScanResponse; urlDecision?: UrlDecisionResponse } | null;
+  const inlineScan = routeState?.inlineScan;
+  const urlDecision = routeState?.urlDecision;
 
   const [scan, setScan] = useState<ScanDetailData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -139,7 +142,7 @@ export default function ThreatResult() {
 
   const status = scan.status;
   const score = scan.risk_score ?? 0;
-  const riskLabel = getRiskLabel(scan.risk_score);
+  const riskLabel = getRiskLabel(scan.risk_score, scan.status);
 
   const indicatorData = scan.indicators.map((indicator) => {
     const severity: "medium" | "high" | "critical" =
@@ -172,6 +175,30 @@ export default function ThreatResult() {
           Scan ID: {scan.id}
         </div>
       </div>
+
+      {urlDecision && <section className={`rounded-2xl border p-5 ${urlDecision.outcome === "dataset_match" ? "border-red-400/30 bg-red-400/[0.05]" : "border-amber-300/25 bg-amber-300/[0.04]"}`} aria-label="URL detection source and reachability">
+        <h2 className="text-sm font-semibold text-white">{urlDecision.outcome === "dataset_match" ? "Known malicious URL" : "URL not fully verified"}</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-300">{urlDecision.risk_assessment?.explanation}</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-slate-700/70 bg-slate-950/30 p-3 text-xs text-slate-300">
+            <p className="text-[10px] uppercase tracking-wide text-slate-500">Dataset match</p>
+            <p className="mt-1">{urlDecision.dataset_lookup.status.replaceAll("_", " ")}</p>
+            {urlDecision.dataset_lookup.status === "known_malicious" && <>
+              <p className="mt-1">Label: {urlDecision.dataset_lookup.source_label}</p>
+              <p>Match type: {urlDecision.dataset_lookup.match_type?.replaceAll("_", " ") || "exact URL"}</p>
+              <p>Source: {urlDecision.dataset_lookup.record_source || urlDecision.dataset_lookup.dataset_name}</p>
+              {urlDecision.dataset_lookup.imported_at && <p>Imported: {formatDate(urlDecision.dataset_lookup.imported_at)}</p>}
+              <p>{urlDecision.dataset_lookup.recorded_at ? `Record date: ${formatDate(urlDecision.dataset_lookup.recorded_at)}` : "The dataset does not provide a per-record timestamp."}</p>
+            </>}
+          </div>
+          <div className="rounded-xl border border-slate-700/70 bg-slate-950/30 p-3 text-xs text-slate-300">
+            <p className="text-[10px] uppercase tracking-wide text-slate-500">Website reachability</p>
+            <p className="mt-1">{urlDecision.reachability.replaceAll("_", " ")}</p>
+            {urlDecision.reason && <p className="mt-1 text-slate-400">Reason: {urlDecision.reason.replaceAll("_", " ")}</p>}
+          </div>
+        </div>
+        {urlDecision.risk_assessment?.limitations?.length ? <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-slate-400">{urlDecision.risk_assessment.limitations.map((item) => <li key={item}>{item}</li>)}</ul> : null}
+      </section>}
 
       <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="scam-card risk-pulse rounded-2xl p-5 sm:p-6">
