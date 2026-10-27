@@ -21,7 +21,7 @@ export default function ScreenshotScanner() {
 
     try {
       const scan = await createScreenshotScan(file);
-      navigate(`/threat/${scan.id}`);
+      navigate(`/threat/${scan.id}`, { state: scan.analysis ? { inlineScan: scan } : undefined });
     } catch (err) {
       setError(
         err instanceof Error

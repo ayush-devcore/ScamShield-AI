@@ -1,0 +1,44 @@
+services:
+  egress-proxy:
+    build:
+      context: .
+      dockerfile: proxy/Dockerfile
+    image: scamshield-egress-proxy:12.3.0
+    container_name: scamshield-sandbox-egress
+    restart: unless-stopped
+    read_only: true
+    user: "1000:1000"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+    tmpfs:
+      - /home/mitmproxy/.mitmproxy:rw,nosuid,nodev,size=32m,uid=1000,gid=1000
+      - /tmp:rw,nosuid,nodev,size=16m,uid=1000,gid=1000
+    logging:
+      driver: none
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1',8080),2); s.close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - internal
+      - proxy_egress
+
+  browser-image:
+    profiles: [build-only]
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    image: scamshield-playwright-worker:1.64.1
+    entrypoint: ["/bin/true"]
+
+networks:
+  internal:
+    name: scamshield-sandbox-internal
+    internal: true
+  proxy_egress:
+    name: scamshield-sandbox-egress-net
+    driver: bridge

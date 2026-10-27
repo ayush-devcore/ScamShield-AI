@@ -30,17 +30,6 @@ class ScreenshotScanRequest(BaseModel):
     content_type: str | None = None
 
 
-class ScanResponse(BaseModel):
-    id: UUID
-    input_type: str
-    status: str
-    risk_score: int | None
-    confidence: float | None
-    threat_type: str | None
-    redacted_preview: str | None = None
-    created_at: datetime
-
-
 class ThreatIndicatorResponse(BaseModel):
     id: UUID
     indicator_type: str
@@ -58,6 +47,19 @@ class AnalysisResultResponse(BaseModel):
     features: dict | None
     explanation: dict | None
     created_at: datetime
+
+
+class ScanResponse(BaseModel):
+    id: UUID
+    input_type: str
+    status: str
+    risk_score: int | None
+    confidence: float | None
+    threat_type: str | None
+    redacted_preview: str | None = None
+    created_at: datetime
+    analysis: AnalysisResultResponse | None = None
+    indicators: list[ThreatIndicatorResponse] | None = None
 
 
 class ScanDetailResponse(BaseModel):

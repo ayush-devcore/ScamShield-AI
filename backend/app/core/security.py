@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import secrets
 
 import jwt
 from pwdlib import PasswordHash
@@ -19,7 +20,7 @@ def verify_password(password: str, password_hash: str) -> bool:
     return password_hasher.verify(password, password_hash)
 
 
-def create_access_token(subject: str) -> str:
+def create_access_token(subject: str, session_id: str | None = None) -> str:
     """Create a signed JWT access token."""
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(
@@ -32,6 +33,8 @@ def create_access_token(subject: str) -> str:
         "iat": now,
         "exp": expires_at,
     }
+    if session_id:
+        payload["sid"] = session_id
 
     return jwt.encode(
         payload,
@@ -53,5 +56,27 @@ def decode_access_token(token: str) -> dict:
 
     if not payload.get("sub"):
         raise jwt.InvalidTokenError("Token subject is missing.")
+
+    return payload
+
+
+def create_mfa_challenge(subject: str) -> str:
+    now = datetime.now(timezone.utc)
+    return jwt.encode({"sub": subject, "type": "mfa_challenge", "jti": secrets.token_urlsafe(16), "iat": now, "exp": now + timedelta(minutes=settings.mfa_challenge_expire_minutes)}, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
+
+def decode_mfa_challenge(token: str) -> dict:
+    payload = jwt.decode(
+        token,
+        settings.jwt_secret_key,
+        algorithms=[settings.jwt_algorithm],
+    )
+
+    if (
+        payload.get("type") != "mfa_challenge"
+        or not payload.get("sub")
+        or not payload.get("jti")
+    ):
+        raise jwt.InvalidTokenError("Invalid MFA challenge.")
 
     return payload

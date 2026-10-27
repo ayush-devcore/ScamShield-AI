@@ -28,6 +28,9 @@ _INDICATOR_DESCRIPTIONS = {
     "suspicious_query": "The destination query has suspicious structural characteristics.",
     "suspicious_tld": "The destination uses a potentially risky top-level domain.",
     "encoded_chars": "The destination contains encoded or unusual characters.",
+    "sandbox_http_transport": "The sandbox observed navigation over unencrypted HTTP.",
+    "sandbox_cross_origin_form": "The sandbox observed a form action directed to a different origin.",
+    "sandbox_download_attempt": "The sandbox observed a download attempt; the file was not saved or opened.",
 }
 
 

@@ -27,6 +27,9 @@ export default function Landing() {
           <Link to="/login" className="rounded-lg border border-slate-800 px-3 py-2 text-xs text-slate-300 hover:border-cyan-400/20 hover:text-white">
             Sign in
           </Link>
+          <Link to="/register" className="rounded-lg bg-cyan-400 px-3 py-2 text-xs font-semibold text-[#031014] hover:bg-cyan-300">
+            Create account
+          </Link>
         </div>
       </nav>
 
@@ -46,12 +49,10 @@ export default function Landing() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link to="/scan" className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-[#031014] hover:bg-cyan-300">
-              Start a Scan <ArrowRight className="h-4 w-4" />
+            <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-[#031014] hover:bg-cyan-300">
+              Create account <ArrowRight className="h-4 w-4" />
             </Link>
-            <a href="#features" className="inline-flex items-center justify-center rounded-xl border border-slate-800 px-5 py-3 text-sm text-slate-300 hover:border-cyan-400/20 hover:text-white">
-              Explore Features
-            </a>
+            <Link to="/login" className="inline-flex items-center justify-center rounded-xl border border-slate-800 px-5 py-3 text-sm text-slate-300 hover:border-cyan-400/20 hover:text-white">Sign in</Link>
           </div>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">

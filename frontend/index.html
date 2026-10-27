@@ -3,9 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#05090c" />
+    <meta name="theme-color" content="#0B1220" />
     <meta name="description" content="ScamShield AI — AI-assisted digital scam risk assessment and prevention." />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ScamShield" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <title>ScamShield AI</title>
+    <script>
+      try {
+        const user = JSON.parse(sessionStorage.getItem("scamshield_user") || "null");
+        const cached = user?.id ? localStorage.getItem(`scamshield_appearance:${user.id}`) : null;
+        const mode = ["dark", "light", "system"].includes(cached) ? cached : "dark";
+        const theme = mode === "system" ? (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : mode;
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.themeMode = mode;
+      } catch {
+        document.documentElement.dataset.theme = "dark";
+        document.documentElement.dataset.themeMode = "dark";
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

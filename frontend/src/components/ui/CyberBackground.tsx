@@ -23,6 +23,7 @@ export function CyberBackground() {
     let width = 0;
     let height = 0;
     let dpr = 1;
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const particles: Particle[] = [];
 
     const resize = () => {
@@ -116,29 +117,43 @@ export function CyberBackground() {
       }
     };
 
-    const animate = () => {
+    const drawFrame = () => {
       ctx.clearRect(0, 0, width, height);
       drawGrid();
       drawConnections();
       drawParticles();
+    };
+
+    const animate = () => {
+      drawFrame();
       update();
       animationFrame = requestAnimationFrame(animate);
     };
 
+    const render = () => {
+      cancelAnimationFrame(animationFrame);
+      if (motionPreference.matches) drawFrame();
+      else animationFrame = requestAnimationFrame(animate);
+    };
+
     resize();
     createParticles();
-    animate();
+    render();
 
     const handleResize = () => {
       resize();
       createParticles();
+      render();
     };
+    const handleMotionChange = () => render();
 
     window.addEventListener("resize", handleResize);
+    motionPreference.addEventListener("change", handleMotionChange);
 
     return () => {
       cancelAnimationFrame(animationFrame);
       window.removeEventListener("resize", handleResize);
+      motionPreference.removeEventListener("change", handleMotionChange);
     };
   }, []);
 
@@ -149,7 +164,7 @@ export function CyberBackground() {
       <div className="absolute -left-32 top-16 h-72 w-72 rounded-full bg-cyan-400/[0.035] blur-3xl" />
       <div className="absolute right-0 top-1/3 h-96 w-96 rounded-full bg-teal-400/[0.025] blur-3xl" />
       <div className="animate-cyber-scan absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(3,7,12,0.42)_100%)]" />
+      <div className="cyber-background-overlay absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(3,7,12,0.42)_100%)]" />
     </div>
   );
 }
