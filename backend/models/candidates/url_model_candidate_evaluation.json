@@ -1,0 +1,177 @@
+{
+  "model_name": "scamshield-url-tfidf-logreg",
+  "model_version": "0.1.0-candidate",
+  "dataset": "cleaned_urls.csv",
+  "dataset_rows": 641113,
+  "split_strategy": "StratifiedGroupKFold by host_group",
+  "split_rows": {
+    "train": 458992,
+    "validation": 92464,
+    "test": 89657
+  },
+  "split_host_groups": {
+    "train": 137573,
+    "validation": 29480,
+    "test": 29481
+  },
+  "hostname_overlap": {
+    "train_validation": 0,
+    "train_test": 0,
+    "validation_test": 0
+  },
+  "class_order": [
+    "benign",
+    "defacement",
+    "malware",
+    "phishing"
+  ],
+  "vectorizer": {
+    "analyzer": "char",
+    "ngram_range": [
+      3,
+      5
+    ],
+    "min_df": 2,
+    "max_features": 180000,
+    "dtype": "float32"
+  },
+  "classifier": {
+    "algorithm": "LogisticRegression",
+    "solver": "saga",
+    "class_weight": "balanced",
+    "max_iter": 80
+  },
+  "validation_metrics": {
+    "accuracy": 0.9015833189133068,
+    "macro_precision": 0.8735281644861089,
+    "macro_recall": 0.8705608331401127,
+    "macro_f1": 0.8669102375239964,
+    "weighted_f1": 0.9038810065062537,
+    "per_class": {
+      "benign": {
+        "precision": 0.950328022492971,
+        "recall": 0.9369407340163403,
+        "f1-score": 0.9435868970752692,
+        "support": 61688.0
+      },
+      "defacement": {
+        "precision": 0.9646799116997793,
+        "recall": 0.7786769619125399,
+        "f1-score": 0.8617558851320817,
+        "support": 13469.0
+      },
+      "malware": {
+        "precision": 0.9004524886877828,
+        "recall": 0.9078467153284672,
+        "f1-score": 0.9041344843253066,
+        "support": 4384.0
+      },
+      "phishing": {
+        "precision": 0.6786522350639026,
+        "recall": 0.858778921303103,
+        "f1-score": 0.7581636835633283,
+        "support": 12923.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        57798,
+        218,
+        184,
+        3488
+      ],
+      [
+        1376,
+        10488,
+        22,
+        1583
+      ],
+      [
+        147,
+        73,
+        3980,
+        184
+      ],
+      [
+        1498,
+        93,
+        234,
+        11098
+      ]
+    ],
+    "label_order": [
+      "benign",
+      "defacement",
+      "malware",
+      "phishing"
+    ]
+  },
+  "test_metrics": {
+    "accuracy": 0.89942781935599,
+    "macro_precision": 0.8157056076431737,
+    "macro_recall": 0.8862014052918972,
+    "macro_f1": 0.8416563386963324,
+    "weighted_f1": 0.9033767276096203,
+    "per_class": {
+      "benign": {
+        "precision": 0.9593357576626121,
+        "recall": 0.9154828452741166,
+        "f1-score": 0.9368964310706788,
+        "support": 58497.0
+      },
+      "defacement": {
+        "precision": 0.9757318367966025,
+        "recall": 0.8610627760674608,
+        "f1-score": 0.9148179749715586,
+        "support": 14942.0
+      },
+      "malware": {
+        "precision": 0.6260599208592426,
+        "recall": 0.8945880452342488,
+        "f1-score": 0.7366145660126372,
+        "support": 2476.0
+      },
+      "phishing": {
+        "precision": 0.7016949152542373,
+        "recall": 0.8736719545917625,
+        "f1-score": 0.7782963827304551,
+        "support": 13742.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        53553,
+        239,
+        1025,
+        3680
+      ],
+      [
+        821,
+        12866,
+        12,
+        1243
+      ],
+      [
+        78,
+        2,
+        2215,
+        181
+      ],
+      [
+        1371,
+        79,
+        286,
+        12006
+      ]
+    ],
+    "label_order": [
+      "benign",
+      "defacement",
+      "malware",
+      "phishing"
+    ]
+  },
+  "elapsed_seconds": 274.15,
+  "created_at": "2026-10-09T08:02:05.208602+00:00",
+  "artifact_sha256": "5dc7c70f695e57735830ff5dba4e8f6d2bb83a286e43b4db9df606839f003925"
+}

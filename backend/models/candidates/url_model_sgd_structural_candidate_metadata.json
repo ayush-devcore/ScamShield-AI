@@ -1,0 +1,60 @@
+{
+  "model_name": "scamshield-url-tfidf-sgd-structural",
+  "model_version": "0.3.0-sgd-structural-candidate",
+  "artifact_filename": "url_model_sgd_structural_candidate.joblib",
+  "artifact_sha256": "4caabb8203096cb5be08b844453821bb2ea882dec63b76eb199ee67fdc458775",
+  "dataset_filename": "cleaned_urls.csv",
+  "dataset_rows_used": 641113,
+  "class_labels": [
+    "benign",
+    "defacement",
+    "malware",
+    "phishing"
+  ],
+  "normalization": "hostname structural features plus path/query/fragment text; omit raw hostname and leading URL scheme",
+  "feature_method": "character TF-IDF on structural hostname indicators and URL path/query/fragment text",
+  "raw_hostname_text_used": false,
+  "leading_scheme_used_as_text_feature": false,
+  "vectorizer": {
+    "analyzer": "char",
+    "ngram_range": [
+      3,
+      5
+    ],
+    "min_df": 2,
+    "max_features": 180000,
+    "sublinear_tf": true
+  },
+  "classifier": {
+    "type": "SGDClassifier",
+    "loss": "log_loss",
+    "alpha": 1e-05,
+    "max_iter": 30,
+    "class_weight": "balanced",
+    "average": true
+  },
+  "random_state": 42,
+  "split_sizes": {
+    "train_rows": 445657,
+    "validation_rows": 116463,
+    "test_rows": 78993,
+    "train_host_groups": 140792,
+    "validation_host_groups": 28227,
+    "test_host_groups": 27515,
+    "hostname_group_overlap": false
+  },
+  "validation_macro_f1": 0.8356156166356304,
+  "test_macro_f1": 0.8122251321701531,
+  "test_macro_recall": 0.8045077003499084,
+  "test_accuracy": 0.8355803678806983,
+  "validation_group_overlap_verified": true,
+  "converged_or_stopped_by_sklearn": true,
+  "trained_at_utc": "2026-10-09T10:02:42.210003+00:00",
+  "training_duration_seconds": 372.55,
+  "evaluation_filename": "url_model_sgd_structural_candidate_evaluation.json",
+  "global_explanations_filename": "url_model_sgd_structural_candidate_global_explanations.json",
+  "candidate_only": true,
+  "live_scanner_connected": false,
+  "probabilities_calibrated": false,
+  "urls_visited": false
+}

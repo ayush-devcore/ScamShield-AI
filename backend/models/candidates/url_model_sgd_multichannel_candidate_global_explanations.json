@@ -1,0 +1,1311 @@
+{
+  "model_name": "scamshield-url-tfidf-sgd-multichannel",
+  "model_version": "0.4.0-sgd-multichannel-candidate",
+  "interpretation": "Linear classifier coefficients, not causal evidence or calibrated confidence.",
+  "features": {
+    "benign": {
+      "strongest_positive": [
+        {
+          "feature": "hostname_text__.ca",
+          "coefficient": 4.9371907018206445
+        },
+        {
+          "feature": "hostname_text__.com",
+          "coefficient": 3.522994901695271
+        },
+        {
+          "feature": "hostname_text__com",
+          "coefficient": 3.1396059924834843
+        },
+        {
+          "feature": "hostname_text__.c",
+          "coefficient": 2.9754863530356315
+        },
+        {
+          "feature": "hostname_text__ca",
+          "coefficient": 2.8251457034577734
+        },
+        {
+          "feature": "hostname_text__.co",
+          "coefficient": 2.8199737854755464
+        },
+        {
+          "feature": "hostname_text__om",
+          "coefficient": 2.7262405851921425
+        },
+        {
+          "feature": "hostname_text__.gov",
+          "coefficient": 2.588396899297456
+        },
+        {
+          "feature": "hostname_text__co",
+          "coefficient": 2.5297165495159337
+        },
+        {
+          "feature": "hostname_text__gov",
+          "coefficient": 2.1753273744802204
+        },
+        {
+          "feature": "hostname_text__.go",
+          "coefficient": 2.153760812912919
+        },
+        {
+          "feature": "hostname_text__.edu",
+          "coefficient": 2.1496358809896474
+        },
+        {
+          "feature": "hostname_text__.ed",
+          "coefficient": 2.1434450544131782
+        },
+        {
+          "feature": "hostname_text__tv",
+          "coefficient": 2.0734981197928546
+        },
+        {
+          "feature": "hostname_text__ow",
+          "coefficient": 1.9155443266099312
+        },
+        {
+          "feature": "path_text__.htm",
+          "coefficient": 1.914218849604369
+        },
+        {
+          "feature": "path_text__.ht",
+          "coefficient": 1.869413094616116
+        },
+        {
+          "feature": "hostname_text__ea",
+          "coefficient": 1.7767432453937055
+        },
+        {
+          "feature": "hostname_text__or",
+          "coefficient": 1.7631873508098486
+        },
+        {
+          "feature": "hostname_text__.org",
+          "coefficient": 1.7314182086019774
+        },
+        {
+          "feature": "hostname_text__wiki",
+          "coefficient": 1.7223211519417894
+        },
+        {
+          "feature": "hostname_text__film",
+          "coefficient": 1.7212137449560299
+        },
+        {
+          "feature": "hostname_text__kc",
+          "coefficient": 1.708081090550164
+        },
+        {
+          "feature": "hostname_text__.payp",
+          "coefficient": 1.6964972083514218
+        },
+        {
+          "feature": "hostname_text__bl",
+          "coefficient": 1.6873345072704613
+        },
+        {
+          "feature": "hostname_text__met",
+          "coefficient": 1.6869418066571482
+        },
+        {
+          "feature": "hostname_text__.pay",
+          "coefficient": 1.6802047893606675
+        },
+        {
+          "feature": "hostname_text__wik",
+          "coefficient": 1.6506567512212011
+        },
+        {
+          "feature": "path_text__an-",
+          "coefficient": 1.6450454587238577
+        },
+        {
+          "feature": "hostname_text__ck",
+          "coefficient": 1.6325240804897163
+        },
+        {
+          "feature": "hostname_text__ilm",
+          "coefficient": 1.6142535113393361
+        },
+        {
+          "feature": "hostname_text__w.pay",
+          "coefficient": 1.6117213290866848
+        },
+        {
+          "feature": "path_text__htm",
+          "coefficient": 1.5851824962070717
+        },
+        {
+          "feature": "hostname_text__iki",
+          "coefficient": 1.5802031000994008
+        },
+        {
+          "feature": "hostname_text__blog",
+          "coefficient": 1.5688056647879702
+        },
+        {
+          "feature": "hostname_text__the",
+          "coefficient": 1.5547092262399227
+        },
+        {
+          "feature": "hostname_text__ide",
+          "coefficient": 1.5536830970945057
+        },
+        {
+          "feature": "hostname_text__e.com",
+          "coefficient": 1.5373315085373676
+        },
+        {
+          "feature": "path_text__011",
+          "coefficient": 1.5232896614925844
+        },
+        {
+          "feature": "path_text__bio",
+          "coefficient": 1.5144523272429684
+        }
+      ],
+      "strongest_negative": [
+        {
+          "feature": "hostname_text__ww",
+          "coefficient": -10.126428834036945
+        },
+        {
+          "feature": "hostname_text__www",
+          "coefficient": -6.255153194672821
+        },
+        {
+          "feature": "hostname_text__www.",
+          "coefficient": -5.987050964748192
+        },
+        {
+          "feature": "hostname_text__ww.",
+          "coefficient": -5.873860441480341
+        },
+        {
+          "feature": "hostname_text__w.",
+          "coefficient": -4.490569792829104
+        },
+        {
+          "feature": "path_text__.ex",
+          "coefficient": -3.727674550811148
+        },
+        {
+          "feature": "path_text__.exe",
+          "coefficient": -3.725444452519427
+        },
+        {
+          "feature": "path_text__exe",
+          "coefficient": -3.4368965345897156
+        },
+        {
+          "feature": "path_text__.php/",
+          "coefficient": -3.015092395594621
+        },
+        {
+          "feature": "path_text__hp/",
+          "coefficient": -2.976371095969841
+        },
+        {
+          "feature": "path_text__php/",
+          "coefficient": -2.900077397872361
+        },
+        {
+          "feature": "path_text__pdf",
+          "coefficient": -2.822003626312353
+        },
+        {
+          "feature": "hostname_text__.i",
+          "coefficient": -2.717877639945162
+        },
+        {
+          "feature": "path_text__.jp",
+          "coefficient": -2.6299941413285675
+        },
+        {
+          "feature": "hostname_text__pp",
+          "coefficient": -2.2549279673687668
+        },
+        {
+          "feature": "path_text__.jpg",
+          "coefficient": -2.2408341450471836
+        },
+        {
+          "feature": "hostname_text__.ga",
+          "coefficient": -2.2298581229501586
+        },
+        {
+          "feature": "numeric__host_numeric_tld",
+          "coefficient": -2.1429883181038227
+        },
+        {
+          "feature": "path_text__.pdf",
+          "coefficient": -2.1311665340245916
+        },
+        {
+          "feature": "path_text__.pd",
+          "coefficient": -2.129143848458013
+        },
+        {
+          "feature": "hostname_text__app",
+          "coefficient": -2.1250416095902156
+        },
+        {
+          "feature": "query_text__://",
+          "coefficient": -2.122906836719998
+        },
+        {
+          "feature": "numeric__fragment_length",
+          "coefficient": -2.1137580827526645
+        },
+        {
+          "feature": "path_text__tml",
+          "coefficient": -2.1028664940316983
+        },
+        {
+          "feature": "path_text__html",
+          "coefficient": -2.0962654250207127
+        },
+        {
+          "feature": "hostname_text__.cf",
+          "coefficient": -2.0160271141940145
+        },
+        {
+          "feature": "hostname_text__.nl",
+          "coefficient": -2.0143747337003868
+        },
+        {
+          "feature": "hostname_text__nl",
+          "coefficient": -1.986449831399736
+        },
+        {
+          "feature": "path_text__.html",
+          "coefficient": -1.8667511884075476
+        },
+        {
+          "feature": "hostname_text__.d",
+          "coefficient": -1.846381466596896
+        },
+        {
+          "feature": "hostname_text__dh",
+          "coefficient": -1.8422898429519792
+        },
+        {
+          "feature": "path_text__jpg",
+          "coefficient": -1.824698228410678
+        },
+        {
+          "feature": "hostname_text__yz",
+          "coefficient": -1.8084491243857501
+        },
+        {
+          "feature": "hostname_text__.ml",
+          "coefficient": -1.7115222254276883
+        },
+        {
+          "feature": "path_text__doc",
+          "coefficient": -1.687834959294525
+        },
+        {
+          "feature": "hostname_text__.xy",
+          "coefficient": -1.6875225660831767
+        },
+        {
+          "feature": "hostname_text__.xyz",
+          "coefficient": -1.6814166152808507
+        },
+        {
+          "feature": "query_text__tp://",
+          "coefficient": -1.6768857086502507
+        },
+        {
+          "feature": "hostname_text__xyz",
+          "coefficient": -1.6666337081678708
+        },
+        {
+          "feature": "query_text__p://",
+          "coefficient": -1.6544478811502086
+        }
+      ]
+    },
+    "defacement": {
+      "strongest_positive": [
+        {
+          "feature": "hostname_text__ww",
+          "coefficient": 11.00823824360207
+        },
+        {
+          "feature": "path_text__.html",
+          "coefficient": 10.336571488785204
+        },
+        {
+          "feature": "path_text__.php/",
+          "coefficient": 9.540246272732594
+        },
+        {
+          "feature": "path_text__php/",
+          "coefficient": 8.98204465517132
+        },
+        {
+          "feature": "path_text__hp/",
+          "coefficient": 8.892451525648788
+        },
+        {
+          "feature": "path_text__html",
+          "coefficient": 8.571516883901062
+        },
+        {
+          "feature": "path_text__tml",
+          "coefficient": 8.570106871466805
+        },
+        {
+          "feature": "numeric__host_longest_label",
+          "coefficient": 8.465331568543034
+        },
+        {
+          "feature": "hostname_text__www.",
+          "coefficient": 6.936172359100418
+        },
+        {
+          "feature": "hostname_text__ww.",
+          "coefficient": 6.885644256276136
+        },
+        {
+          "feature": "hostname_text__www",
+          "coefficient": 6.627541715027598
+        },
+        {
+          "feature": "hostname_text__w.",
+          "coefficient": 5.9189516819878385
+        },
+        {
+          "feature": "hostname_text__.nl",
+          "coefficient": 5.277628041266541
+        },
+        {
+          "feature": "path_text__ex.ph",
+          "coefficient": 4.265955458500448
+        },
+        {
+          "feature": "path_text__x.php",
+          "coefficient": 4.159521465501328
+        },
+        {
+          "feature": "path_text__dex.p",
+          "coefficient": 4.148593403553754
+        },
+        {
+          "feature": "path_text__ex.p",
+          "coefficient": 4.139582472128629
+        },
+        {
+          "feature": "path_text__x.ph",
+          "coefficient": 4.106634124084121
+        },
+        {
+          "feature": "path_text__nent/",
+          "coefficient": 4.087989569257301
+        },
+        {
+          "feature": "path_text__x.p",
+          "coefficient": 3.986102142150598
+        },
+        {
+          "feature": "hostname_text__nl",
+          "coefficient": 3.8912395155044663
+        },
+        {
+          "feature": "path_text__.txt",
+          "coefficient": 3.5467615215604535
+        },
+        {
+          "feature": "path_text__.tx",
+          "coefficient": 3.541233121044941
+        },
+        {
+          "feature": "path_text__/x.t",
+          "coefficient": 3.4941541468925466
+        },
+        {
+          "feature": "path_text__/x.tx",
+          "coefficient": 3.4941541468925466
+        },
+        {
+          "feature": "path_text__x.txt",
+          "coefficient": 3.4918083462489347
+        },
+        {
+          "feature": "path_text__x.tx",
+          "coefficient": 3.4872920727060674
+        },
+        {
+          "feature": "path_text__nen",
+          "coefficient": 3.44026279104669
+        },
+        {
+          "feature": "path_text__txt",
+          "coefficient": 3.4262253018012845
+        },
+        {
+          "feature": "path_text__/co",
+          "coefficient": 3.411324566438444
+        },
+        {
+          "feature": "path_text__s.1",
+          "coefficient": 3.403180889320744
+        },
+        {
+          "feature": "path_text__x.t",
+          "coefficient": 3.383354316027329
+        },
+        {
+          "feature": "hostname_text__jt",
+          "coefficient": 3.3243612103761766
+        },
+        {
+          "feature": "path_text__ent",
+          "coefficient": 3.3065825849271255
+        },
+        {
+          "feature": "path_text__/x.",
+          "coefficient": 3.2944974288320585
+        },
+        {
+          "feature": "path_text__/a.h",
+          "coefficient": 3.1978925911030913
+        },
+        {
+          "feature": "path_text__/a.ht",
+          "coefficient": 3.1978925911030913
+        },
+        {
+          "feature": "query_text__%2f",
+          "coefficient": 3.146332043703465
+        },
+        {
+          "feature": "path_text__ndex.",
+          "coefficient": 3.1413990363243145
+        },
+        {
+          "feature": "path_text__dex.",
+          "coefficient": 3.131548106726416
+        }
+      ],
+      "strongest_negative": [
+        {
+          "feature": "numeric__fragment_length",
+          "coefficient": -15.815722060491948
+        },
+        {
+          "feature": "numeric__host_length",
+          "coefficient": -13.300343282686828
+        },
+        {
+          "feature": "numeric__host_underscore_count",
+          "coefficient": -9.423044365021026
+        },
+        {
+          "feature": "numeric__host_punycode",
+          "coefficient": -8.10256212995865
+        },
+        {
+          "feature": "hostname_text__.ca",
+          "coefficient": -7.8582681103834435
+        },
+        {
+          "feature": "hostname_text__.c",
+          "coefficient": -7.17072596921817
+        },
+        {
+          "feature": "hostname_text__s.",
+          "coefficient": -6.016486983053576
+        },
+        {
+          "feature": "numeric__host_digit_count",
+          "coefficient": -5.876690245946782
+        },
+        {
+          "feature": "hostname_text__.u",
+          "coefficient": -5.439636782211493
+        },
+        {
+          "feature": "numeric__fragment_present",
+          "coefficient": -5.4096966234909
+        },
+        {
+          "feature": "hostname_text__ca",
+          "coefficient": -5.021870582699205
+        },
+        {
+          "feature": "hostname_text__e.",
+          "coefficient": -4.946038146900484
+        },
+        {
+          "feature": "hostname_text__co",
+          "coefficient": -4.514147633777376
+        },
+        {
+          "feature": "hostname_text__ou",
+          "coefficient": -4.496601316648469
+        },
+        {
+          "feature": "hostname_text__.co",
+          "coefficient": -4.410200632888475
+        },
+        {
+          "feature": "hostname_text__or",
+          "coefficient": -4.29395219926511
+        },
+        {
+          "feature": "hostname_text__t.",
+          "coefficient": -4.253049120128362
+        },
+        {
+          "feature": "hostname_text__er",
+          "coefficient": -3.9233841145293287
+        },
+        {
+          "feature": "hostname_text__y.",
+          "coefficient": -3.916959934779149
+        },
+        {
+          "feature": "hostname_text__ne",
+          "coefficient": -3.883129734088254
+        },
+        {
+          "feature": "hostname_text__l.",
+          "coefficient": -3.8374639592758877
+        },
+        {
+          "feature": "hostname_text__us",
+          "coefficient": -3.725742116391386
+        },
+        {
+          "feature": "hostname_text__.ed",
+          "coefficient": -3.6412775149885817
+        },
+        {
+          "feature": "hostname_text__om",
+          "coefficient": -3.5970700753909606
+        },
+        {
+          "feature": "hostname_text__uk",
+          "coefficient": -3.5436489453415048
+        },
+        {
+          "feature": "hostname_text__.com",
+          "coefficient": -3.5275750602407934
+        },
+        {
+          "feature": "hostname_text__ed",
+          "coefficient": -3.52111336968202
+        },
+        {
+          "feature": "hostname_text__pa",
+          "coefficient": -3.5096422801954397
+        },
+        {
+          "feature": "hostname_text__me",
+          "coefficient": -3.4348380810588064
+        },
+        {
+          "feature": "hostname_text__.t",
+          "coefficient": -3.41826163082271
+        },
+        {
+          "feature": "hostname_text__com",
+          "coefficient": -3.4151710934304282
+        },
+        {
+          "feature": "hostname_text__ar",
+          "coefficient": -3.4027684338735056
+        },
+        {
+          "feature": "hostname_text__.edu",
+          "coefficient": -3.3807078581317307
+        },
+        {
+          "feature": "hostname_text__.co.",
+          "coefficient": -3.3543121846048543
+        },
+        {
+          "feature": "hostname_text__th",
+          "coefficient": -3.336722558808618
+        },
+        {
+          "feature": "hostname_text__c.",
+          "coefficient": -3.315790452006075
+        },
+        {
+          "feature": "hostname_text__se",
+          "coefficient": -3.3122266348753735
+        },
+        {
+          "feature": "categorical__host_tld_length_bucket_short",
+          "coefficient": -3.2918782031173017
+        },
+        {
+          "feature": "hostname_text__in",
+          "coefficient": -3.2618435052511074
+        },
+        {
+          "feature": "hostname_text__an",
+          "coefficient": -3.2237368559427746
+        }
+      ]
+    },
+    "malware": {
+      "strongest_positive": [
+        {
+          "feature": "path_text__.exe",
+          "coefficient": 15.849267405132018
+        },
+        {
+          "feature": "path_text__.ex",
+          "coefficient": 15.806812936982872
+        },
+        {
+          "feature": "path_text__exe",
+          "coefficient": 14.976276163252816
+        },
+        {
+          "feature": "path_text__.jp",
+          "coefficient": 10.073063081444177
+        },
+        {
+          "feature": "path_text__.jpg",
+          "coefficient": 9.188339047333917
+        },
+        {
+          "feature": "path_text__jpg",
+          "coefficient": 9.085567550312453
+        },
+        {
+          "feature": "path_text__.apk",
+          "coefficient": 7.712897167373713
+        },
+        {
+          "feature": "path_text__apk",
+          "coefficient": 7.619098654838213
+        },
+        {
+          "feature": "path_text__.bin",
+          "coefficient": 7.297541146535582
+        },
+        {
+          "feature": "path_text__.bi",
+          "coefficient": 7.174070986528183
+        },
+        {
+          "feature": "path_text__/uc",
+          "coefficient": 7.051135616016432
+        },
+        {
+          "feature": "path_text__.ap",
+          "coefficient": 6.626241721493184
+        },
+        {
+          "feature": "path_text__bin",
+          "coefficient": 6.567047841038608
+        },
+        {
+          "feature": "hostname_text__img",
+          "coefficient": 6.458085894973001
+        },
+        {
+          "feature": "path_text__/raw/",
+          "coefficient": 5.092863656650464
+        },
+        {
+          "feature": "path_text__raw/",
+          "coefficient": 5.074603355740482
+        },
+        {
+          "feature": "path_text__/raw",
+          "coefficient": 5.053027040446963
+        },
+        {
+          "feature": "hostname_text__cn",
+          "coefficient": 4.951028976788269
+        },
+        {
+          "feature": "path_text__aw/",
+          "coefficient": 4.784016881482786
+        },
+        {
+          "feature": "path_text__.png",
+          "coefficient": 4.685753307691821
+        },
+        {
+          "feature": "path_text__raw",
+          "coefficient": 4.6797146926262725
+        },
+        {
+          "feature": "path_text__.pn",
+          "coefficient": 4.625307257744211
+        },
+        {
+          "feature": "hostname_text__esevi",
+          "coefficient": 4.560359523988123
+        },
+        {
+          "feature": "hostname_text__nesev",
+          "coefficient": 4.555451384117139
+        },
+        {
+          "feature": "hostname_text__ast",
+          "coefficient": 4.544064189060474
+        },
+        {
+          "feature": "hostname_text__evie.",
+          "coefficient": 4.526500142811064
+        },
+        {
+          "feature": "path_text__/r/",
+          "coefficient": 4.510041549468392
+        },
+        {
+          "feature": "hostname_text__sevie",
+          "coefficient": 4.505381959061776
+        },
+        {
+          "feature": "hostname_text__esev",
+          "coefficient": 4.4967106795971405
+        },
+        {
+          "feature": "path_text__png",
+          "coefficient": 4.438769799107666
+        },
+        {
+          "feature": "hostname_text__sevi",
+          "coefficient": 4.342089230221245
+        },
+        {
+          "feature": "hostname_text__paste",
+          "coefficient": 4.16421026905481
+        },
+        {
+          "feature": "hostname_text__past",
+          "coefficient": 4.149466403210749
+        },
+        {
+          "feature": "hostname_text__du.",
+          "coefficient": 4.119979583053477
+        },
+        {
+          "feature": "hostname_text__evie",
+          "coefficient": 4.087096093743122
+        },
+        {
+          "feature": "hostname_text__.t",
+          "coefficient": 4.028639343680897
+        },
+        {
+          "feature": "hostname_text__hines",
+          "coefficient": 4.018024301783036
+        },
+        {
+          "feature": "hostname_text__mg",
+          "coefficient": 3.9919045604808683
+        },
+        {
+          "feature": "hostname_text__ouk",
+          "coefficient": 3.9502647543484684
+        },
+        {
+          "feature": "hostname_text__.cn",
+          "coefficient": 3.936494094210464
+        }
+      ],
+      "strongest_negative": [
+        {
+          "feature": "numeric__host_numeric_tld",
+          "coefficient": -18.230327554537325
+        },
+        {
+          "feature": "path_text__htm",
+          "coefficient": -15.105231286992494
+        },
+        {
+          "feature": "path_text__.htm",
+          "coefficient": -15.059937767206131
+        },
+        {
+          "feature": "path_text__.ht",
+          "coefficient": -14.91366125463885
+        },
+        {
+          "feature": "path_text__tml",
+          "coefficient": -10.960606487969072
+        },
+        {
+          "feature": "path_text__html",
+          "coefficient": -10.960279230615207
+        },
+        {
+          "feature": "path_text__.html",
+          "coefficient": -10.832424347822627
+        },
+        {
+          "feature": "path_text__asp",
+          "coefficient": -4.06269401191156
+        },
+        {
+          "feature": "path_text__.asp",
+          "coefficient": -4.052867313508035
+        },
+        {
+          "feature": "path_text__.as",
+          "coefficient": -3.9720288699935904
+        },
+        {
+          "feature": "path_text__.ph",
+          "coefficient": -3.766972596737413
+        },
+        {
+          "feature": "path_text__.php",
+          "coefficient": -3.735462437551095
+        },
+        {
+          "feature": "path_text__php",
+          "coefficient": -3.658598871727991
+        },
+        {
+          "feature": "hostname_text__or",
+          "coefficient": -3.469782390674252
+        },
+        {
+          "feature": "numeric__host_length",
+          "coefficient": -3.4540699378133444
+        },
+        {
+          "feature": "hostname_text__.ed",
+          "coefficient": -3.4137427048537177
+        },
+        {
+          "feature": "numeric__fragment_present",
+          "coefficient": -3.3578453619369606
+        },
+        {
+          "feature": "numeric__host_underscore_count",
+          "coefficient": -3.355525568214521
+        },
+        {
+          "feature": "path_text__s.ht",
+          "coefficient": -3.330906673342404
+        },
+        {
+          "feature": "path_text__s.htm",
+          "coefficient": -3.330906673342404
+        },
+        {
+          "feature": "hostname_text__.edu",
+          "coefficient": -3.3291396104483444
+        },
+        {
+          "feature": "path_text__s.h",
+          "coefficient": -3.2511139470917882
+        },
+        {
+          "feature": "path_text__/in",
+          "coefficient": -3.2414168413923568
+        },
+        {
+          "feature": "path_text__ind",
+          "coefficient": -3.2039258330690323
+        },
+        {
+          "feature": "path_text__nde",
+          "coefficient": -3.086306349312996
+        },
+        {
+          "feature": "path_text__art",
+          "coefficient": -2.969556000795754
+        },
+        {
+          "feature": "path_text__inde",
+          "coefficient": -2.919320490891679
+        },
+        {
+          "feature": "hostname_text__.u",
+          "coefficient": -2.891944381452689
+        },
+        {
+          "feature": "path_text__/ind",
+          "coefficient": -2.8817565578265656
+        },
+        {
+          "feature": "path_text__index",
+          "coefficient": -2.830417495132701
+        },
+        {
+          "feature": "path_text__ex.",
+          "coefficient": -2.8211636541982643
+        },
+        {
+          "feature": "categorical__host_digit_ratio_bucket_none",
+          "coefficient": -2.8197425001977026
+        },
+        {
+          "feature": "path_text__dex.",
+          "coefficient": -2.7929365530730297
+        },
+        {
+          "feature": "path_text__ndex.",
+          "coefficient": -2.791182564590614
+        },
+        {
+          "feature": "path_text__/inde",
+          "coefficient": -2.786910085661994
+        },
+        {
+          "feature": "hostname_text__mo",
+          "coefficient": -2.756737407486806
+        },
+        {
+          "feature": "path_text__ndex",
+          "coefficient": -2.7471353286332785
+        },
+        {
+          "feature": "path_text__dex",
+          "coefficient": -2.724530964981947
+        },
+        {
+          "feature": "hostname_text__ab",
+          "coefficient": -2.685646359505028
+        },
+        {
+          "feature": "path_text__e.h",
+          "coefficient": -2.6485325304031524
+        }
+      ]
+    },
+    "phishing": {
+      "strongest_positive": [
+        {
+          "feature": "hostname_text__ww",
+          "coefficient": 11.094084421470058
+        },
+        {
+          "feature": "hostname_text__www",
+          "coefficient": 6.908296190343091
+        },
+        {
+          "feature": "hostname_text__www.",
+          "coefficient": 5.8842793058918375
+        },
+        {
+          "feature": "hostname_text__ww.",
+          "coefficient": 5.747808938137268
+        },
+        {
+          "feature": "query_text__&amp",
+          "coefficient": 4.823978347292178
+        },
+        {
+          "feature": "query_text__&am",
+          "coefficient": 4.813784182298782
+        },
+        {
+          "feature": "query_text__&amp;",
+          "coefficient": 4.809015230467931
+        },
+        {
+          "feature": "hostname_text__.i",
+          "coefficient": 4.696374561046846
+        },
+        {
+          "feature": "path_text__pdf",
+          "coefficient": 4.597893126274539
+        },
+        {
+          "feature": "hostname_text__w.",
+          "coefficient": 4.39025147534184
+        },
+        {
+          "feature": "hostname_text__.ga",
+          "coefficient": 4.181270480864589
+        },
+        {
+          "feature": "hostname_text__.cf",
+          "coefficient": 3.9451931691731033
+        },
+        {
+          "feature": "hostname_text__.g",
+          "coefficient": 3.758647012558257
+        },
+        {
+          "feature": "path_text__.pdf",
+          "coefficient": 3.7375082646607645
+        },
+        {
+          "feature": "path_text__.pd",
+          "coefficient": 3.734878406977902
+        },
+        {
+          "feature": "hostname_text__.ml",
+          "coefficient": 3.579677254535898
+        },
+        {
+          "feature": "numeric__host_numeric_tld",
+          "coefficient": 3.474654822222961
+        },
+        {
+          "feature": "hostname_text__.gq",
+          "coefficient": 3.3281922928286445
+        },
+        {
+          "feature": "query_text__://",
+          "coefficient": 3.321794717674001
+        },
+        {
+          "feature": "hostname_text__pp",
+          "coefficient": 3.310860304159295
+        },
+        {
+          "feature": "hostname_text__ml",
+          "coefficient": 3.2874130010779488
+        },
+        {
+          "feature": "hostname_text__app",
+          "coefficient": 3.210671356226584
+        },
+        {
+          "feature": "hostname_text__.cs",
+          "coefficient": 3.1962686706275263
+        },
+        {
+          "feature": "hostname_text__web",
+          "coefficient": 3.025124995350782
+        },
+        {
+          "feature": "hostname_text__cs.",
+          "coefficient": 3.0203588615896426
+        },
+        {
+          "feature": "hostname_text__gq",
+          "coefficient": 3.0019036683577176
+        },
+        {
+          "feature": "hostname_text__.p",
+          "coefficient": 2.948529790224524
+        },
+        {
+          "feature": "query_text__il=",
+          "coefficient": 2.8940090734784256
+        },
+        {
+          "feature": "path_text__doc",
+          "coefficient": 2.8519271223128784
+        },
+        {
+          "feature": "query_text__ail=",
+          "coefficient": 2.8352127858611493
+        },
+        {
+          "feature": "hostname_text__.m",
+          "coefficient": 2.815820064422809
+        },
+        {
+          "feature": "query_text__mp;",
+          "coefficient": 2.7782716649009567
+        },
+        {
+          "feature": "query_text__amp;",
+          "coefficient": 2.7763962355823324
+        },
+        {
+          "feature": "hostname_text__.cs.",
+          "coefficient": 2.7601437810069034
+        },
+        {
+          "feature": "hostname_text__w.ang",
+          "coefficient": 2.7541838485083274
+        },
+        {
+          "feature": "hostname_text__.s",
+          "coefficient": 2.749811485131038
+        },
+        {
+          "feature": "hostname_text__ec",
+          "coefficient": 2.7182899562492815
+        },
+        {
+          "feature": "query_text__mail=",
+          "coefficient": 2.7130374808945765
+        },
+        {
+          "feature": "hostname_text__bet",
+          "coefficient": 2.680838613931838
+        },
+        {
+          "feature": "hostname_text__in",
+          "coefficient": 2.6603053091166635
+        }
+      ],
+      "strongest_negative": [
+        {
+          "feature": "path_text__.php/",
+          "coefficient": -4.050770771115355
+        },
+        {
+          "feature": "path_text__php/",
+          "coefficient": -3.442772011791861
+        },
+        {
+          "feature": "path_text__hp/",
+          "coefficient": -3.2365785563046945
+        },
+        {
+          "feature": "path_text__.exe",
+          "coefficient": -3.149319067486589
+        },
+        {
+          "feature": "hostname_text__.ca",
+          "coefficient": -3.1063842937556716
+        },
+        {
+          "feature": "path_text__.ex",
+          "coefficient": -3.0943726608879922
+        },
+        {
+          "feature": "path_text__201",
+          "coefficient": -2.8120193800444953
+        },
+        {
+          "feature": "path_text__an-",
+          "coefficient": -2.757460870132806
+        },
+        {
+          "feature": "hostname_text__.nl",
+          "coefficient": -2.7297026838713516
+        },
+        {
+          "feature": "path_text__er-",
+          "coefficient": -2.694088602963979
+        },
+        {
+          "feature": "path_text__.html",
+          "coefficient": -2.6541554249777253
+        },
+        {
+          "feature": "path_text__es-",
+          "coefficient": -2.629710671721244
+        },
+        {
+          "feature": "path_text__jpg",
+          "coefficient": -2.490181698598593
+        },
+        {
+          "feature": "path_text__exe",
+          "coefficient": -2.296383256920543
+        },
+        {
+          "feature": "hostname_text__.go",
+          "coefficient": -2.25728090022871
+        },
+        {
+          "feature": "path_text__.jpg",
+          "coefficient": -2.2495195871678644
+        },
+        {
+          "feature": "hostname_text__.com",
+          "coefficient": -2.1927486471207778
+        },
+        {
+          "feature": "path_text__-ca",
+          "coefficient": -2.1819196014491498
+        },
+        {
+          "feature": "path_text__/de/",
+          "coefficient": -2.177705959736499
+        },
+        {
+          "feature": "hostname_text__.payp",
+          "coefficient": -2.1685882304585933
+        },
+        {
+          "feature": "hostname_text__.pay",
+          "coefficient": -2.144569742194448
+        },
+        {
+          "feature": "hostname_text__ysp",
+          "coefficient": -2.136966234664901
+        },
+        {
+          "feature": "path_text__ng-",
+          "coefficient": -2.1306249847513326
+        },
+        {
+          "feature": "path_text__-de",
+          "coefficient": -2.119547704623524
+        },
+        {
+          "feature": "path_text__-ma",
+          "coefficient": -2.114204961506944
+        },
+        {
+          "feature": "path_text__/bi",
+          "coefficient": -2.097468056806117
+        },
+        {
+          "feature": "hostname_text__.gov",
+          "coefficient": -2.09660357019092
+        },
+        {
+          "feature": "path_text__ist",
+          "coefficient": -2.0718413779745224
+        },
+        {
+          "feature": "path_text__-co",
+          "coefficient": -2.0636552402322215
+        },
+        {
+          "feature": "hostname_text__kc",
+          "coefficient": -2.0540797504065673
+        },
+        {
+          "feature": "path_text__nent/",
+          "coefficient": -2.0471700412788087
+        },
+        {
+          "feature": "query_text__;amp;",
+          "coefficient": -2.018418508163009
+        },
+        {
+          "feature": "path_text__/x.t",
+          "coefficient": -1.99255748030967
+        },
+        {
+          "feature": "path_text__/x.tx",
+          "coefficient": -1.99255748030967
+        },
+        {
+          "feature": "path_text__x.txt",
+          "coefficient": -1.9920443800302923
+        },
+        {
+          "feature": "path_text__on-",
+          "coefficient": -1.9857995010388163
+        },
+        {
+          "feature": "path_text__x.tx",
+          "coefficient": -1.9752243368341467
+        },
+        {
+          "feature": "path_text__011",
+          "coefficient": -1.9652704453927257
+        },
+        {
+          "feature": "path_text__/x.",
+          "coefficient": -1.9648542199504824
+        },
+        {
+          "feature": "hostname_text__film",
+          "coefficient": -1.9610371852644992
+        }
+      ]
+    }
+  }
+}
