@@ -48,6 +48,7 @@ class UrlDecisionTests(unittest.IsolatedAsyncioTestCase):
         self.request = URLScanRequest(url="HTTPS://Example.com:443/login#form")
 
     async def test_malicious_dataset_hit_skips_runtime_and_returns_provenance(self):
+        private_request = URLScanRequest(url="https://Example.com/private-reset-token?session=secret-value#fragment-secret")
         lookup = DatasetLookup(
             status="known_malicious", source_label="phishing", dataset_name="malicious_phish.csv",
             dataset_fingerprint="a" * 64, imported_at=datetime.now(timezone.utc), recorded_at=None,
@@ -56,11 +57,14 @@ class UrlDecisionTests(unittest.IsolatedAsyncioTestCase):
              patch("app.routes.scans._finish_scan", new=AsyncMock(return_value=SimpleNamespace(id=uuid4(), status="critical", risk_score=100, confidence=1, threat_type="Known malicious", created_at=datetime.now(timezone.utc)))), \
              patch("app.routes.scans._inline_scan", return_value=scan_response()), \
              patch("app.routes.scans.get_sandbox_status", side_effect=AssertionError("dataset hit must skip browser readiness")):
-            result = await decide_url_analysis(self.request, self.user, self.db)
+            result = await decide_url_analysis(private_request, self.user, self.db)
         self.assertEqual(result.outcome, "dataset_match")
         self.assertEqual(result.risk_assessment.verdict, "known_malicious")
         self.assertEqual(result.reachability, "not_checked")
         self.assertEqual(result.dataset_lookup.source_label, "phishing")
+        serialized = result.model_dump_json()
+        for secret in ("/private-reset-token", "secret-value", "fragment-secret"):
+            self.assertNotIn(secret, serialized)
 
     async def test_unmatched_low_heuristic_score_never_becomes_safe_without_runtime(self):
         analysis = SimpleNamespace(

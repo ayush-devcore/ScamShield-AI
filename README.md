@@ -110,6 +110,8 @@ After confirming the configured database is the intended environment, manually a
 
 For Render, provide the ignored dataset through the deployment's approved private artifact/storage process, then run the same importer against its persistent PostgreSQL database. Do not commit the dataset. Do not enable sandbox flags in Render based on the Windows Docker Desktop installation: the repository has no verified Render worker/proxy deployment or Render instance-level network probe, so deployed sandbox execution remains unverified and must stay disabled until that boundary is demonstrated. Render private networking connects services within the same region, but does not by itself prove that a nested disposable browser container can be provisioned with the required restricted egress.
 
+Use [the separate Render migration and dataset import runbook](docs/RENDER_DATASET_DEPLOYMENT_RUNBOOK.md) for a backup-first production procedure. It was prepared only; no Render database was accessed or changed.
+
 ## Scope notes
 
 The backend provides the scan and account APIs used by the frontend; `/docs` lists the routes available in the running application. Configuration includes optional external-service API key settings, but this local setup does not configure or claim any external threat-intelligence integration. The setup steps above cover local development only, not production deployment.
