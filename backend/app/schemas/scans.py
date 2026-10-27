@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.schemas.sandbox import SandboxJobResponse
+
 
 class MessageScanRequest(BaseModel):
     message: str = Field(
@@ -60,6 +62,36 @@ class ScanResponse(BaseModel):
     created_at: datetime
     analysis: AnalysisResultResponse | None = None
     indicators: list[ThreatIndicatorResponse] | None = None
+
+
+class UrlDatasetLookupResponse(BaseModel):
+    status: str
+    match_type: str | None = None
+    source_label: str | None = None
+    dataset_name: str | None = None
+    record_source: str | None = None
+    dataset_fingerprint: str | None = None
+    imported_at: datetime | None = None
+    recorded_at: datetime | None = None
+
+
+class UrlRiskAssessmentResponse(BaseModel):
+    verdict: str
+    risk_score: int | None = None
+    method: str
+    explanation: str
+    indicators: list[str] = Field(default_factory=list)
+    limitations: list[str] = Field(default_factory=list)
+
+
+class UrlDecisionResponse(BaseModel):
+    outcome: str
+    dataset_lookup: UrlDatasetLookupResponse
+    risk_assessment: UrlRiskAssessmentResponse | None = None
+    reachability: str
+    reason: str | None = None
+    scan: ScanResponse | None = None
+    sandbox_job: SandboxJobResponse | None = None
 
 
 class ScanDetailResponse(BaseModel):

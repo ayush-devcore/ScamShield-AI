@@ -13,6 +13,7 @@ _PRIVATE_ANALYSIS_KEYS = {
     "input", "payload",
 }
 _INDICATOR_DESCRIPTIONS = {
+    "dataset_known_malicious": "The exact normalized URL appears in an imported dataset with a malicious label.",
     "urgency_language": "The content uses pressure or time-sensitive language.",
     "account_targeting": "The content refers to account access or verification.",
     "credential_request": "The content references credentials such as passwords or one-time codes.",

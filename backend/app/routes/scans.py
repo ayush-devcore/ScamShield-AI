@@ -27,8 +27,12 @@ from app.schemas.scans import (
     ScreenshotScanRequest,
     ThreatIndicatorResponse,
     URLScanRequest,
+    UrlDatasetLookupResponse,
+    UrlDecisionResponse,
+    UrlRiskAssessmentResponse,
 )
-from app.services.risk_engine import analyze_message, analyze_url
+from app.services.risk_engine import RiskAnalysis, ThreatSignal, analyze_message, analyze_url
+from app.services.url_dataset import DatasetLookup, canonicalize_url, lookup_url
 from app.services.scan_privacy import (
     safe_indicator_description,
     safe_scan_preview,
@@ -40,6 +44,9 @@ from app.services.screenshot_analysis import (
     read_screenshot_upload,
     validate_screenshot_upload,
 )
+from app.schemas.sandbox import SandboxUrlRequest
+from app.services.sandbox_runtime import get_sandbox_status
+from app.routes.sandbox import submit_url_sandbox
 
 router = APIRouter(
     prefix="/scans",
@@ -199,6 +206,245 @@ async def create_url_scan(
         ) from exc
 
     return await _finish_scan(db, current_user, "url", safe_scan_preview("url", url), analysis)
+
+
+def _dataset_lookup_response(lookup: DatasetLookup) -> UrlDatasetLookupResponse:
+    if lookup.status != "known_malicious":
+        return UrlDatasetLookupResponse(status=lookup.status)
+    return UrlDatasetLookupResponse(
+        status=lookup.status,
+        match_type=lookup.match_type,
+        source_label=lookup.source_label,
+        dataset_name=lookup.dataset_name,
+        record_source=lookup.record_source,
+        dataset_fingerprint=lookup.dataset_fingerprint,
+        imported_at=lookup.imported_at,
+        recorded_at=lookup.recorded_at,
+    )
+
+
+def _inline_scan(scan: Scan | ScanResponse, analysis, *, prediction: str | None = None) -> ScanResponse:
+    now = datetime.now(timezone.utc)
+    scan_id = scan.id
+    return ScanResponse(
+        id=scan_id,
+        input_type="url",
+        status=scan.status,
+        risk_score=scan.risk_score,
+        confidence=scan.confidence,
+        threat_type=scan.threat_type,
+        redacted_preview=safe_scan_preview("url"),
+        created_at=scan.created_at or now,
+        analysis=AnalysisResultResponse(
+            id=uuid4(),
+            model_name=analysis.model_name,
+            model_version=analysis.model_version,
+            prediction=prediction or analysis.prediction,
+            probability=analysis.risk_score / 100,
+            features=sanitize_analysis_payload(analysis.features),
+            explanation=sanitize_analysis_payload(analysis.explanation),
+            created_at=now,
+        ),
+        indicators=[
+            ThreatIndicatorResponse(
+                id=uuid4(),
+                indicator_type=signal.indicator_type,
+                description=safe_indicator_description(signal.indicator_type),
+                severity=signal.severity,
+                evidence=sanitize_analysis_payload(signal.evidence),
+            )
+            for signal in analysis.signals
+        ],
+    )
+
+
+async def _finish_unverified_url(db: AsyncSession, user: User, url: str, analysis) -> ScanResponse:
+    """Keep static-only results explicitly unverified, never convert low scores to safe."""
+    now = datetime.now(timezone.utc)
+    persist_history = await scan_history_enabled(db, user.id)
+    scan = Scan(
+        id=uuid4(),
+        user_id=user.id,
+        input_type="url",
+        status="runtime_unavailable",
+        risk_score=analysis.risk_score,
+        confidence=analysis.confidence,
+        threat_type="Unverified; isolated browser analysis unavailable",
+        redacted_preview=safe_scan_preview("url", url),
+        created_at=now,
+        completed_at=now,
+    )
+    explanation = {
+        **analysis.explanation,
+        "detection_source": "local_static_heuristics",
+        "verdict": "suspicious" if analysis.risk_score >= 30 else "unverified",
+        "sandbox_status": "runtime_unavailable",
+        "reachability": "unknown",
+    }
+    features = sanitize_analysis_payload(analysis.features)
+    explanation = sanitize_analysis_payload(explanation)
+    if persist_history:
+        db.add(scan)
+        await db.flush()
+        db.add(AnalysisResult(
+            scan_id=scan.id,
+            model_name=analysis.model_name,
+            model_version=analysis.model_version,
+            prediction="suspicious" if analysis.risk_score >= 30 else "unverified",
+            probability=analysis.risk_score / 100,
+            features=features,
+            explanation=explanation,
+        ))
+        for signal in analysis.signals:
+            db.add(ThreatIndicator(
+                scan_id=scan.id,
+                indicator_type=signal.indicator_type,
+                description=safe_indicator_description(signal.indicator_type),
+                severity=signal.severity,
+                evidence=sanitize_analysis_payload(signal.evidence),
+            ))
+        await db.commit()
+        await db.refresh(scan)
+    # Use this analysis for the immediate response even when history is disabled.
+    response_scan = _inline_scan(scan, analysis, prediction="suspicious" if analysis.risk_score >= 30 else "unverified")
+    response_scan.analysis.explanation = explanation
+    return response_scan
+
+
+def _static_risk(analysis, *, method: str, explanation: str, limitations: list[str]) -> UrlRiskAssessmentResponse:
+    verdict = "suspicious" if analysis.risk_score >= 30 else "unverified"
+    return UrlRiskAssessmentResponse(
+        verdict=verdict,
+        risk_score=analysis.risk_score,
+        method=method,
+        explanation=explanation,
+        indicators=[signal.indicator_type for signal in analysis.signals],
+        limitations=limitations,
+    )
+
+
+@router.post("/url/decision", response_model=UrlDecisionResponse)
+async def decide_url_analysis(
+    payload: URLScanRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UrlDecisionResponse:
+    """Check the imported exact-URL index first, then use restricted browsing."""
+    try:
+        normalized_url = canonicalize_url(payload.url)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
+
+    try:
+        dataset_lookup = await lookup_url(db, normalized_url)
+    except Exception:
+        await db.rollback()
+        raise HTTPException(
+            status_code=503,
+            detail="The URL dataset lookup is unavailable; no verdict was produced.",
+        ) from None
+
+    lookup_response = _dataset_lookup_response(dataset_lookup)
+    if dataset_lookup.status == "known_malicious":
+        provenance = {
+            "dataset_name": dataset_lookup.dataset_name,
+            "source": dataset_lookup.record_source,
+            "source_label": dataset_lookup.source_label,
+            "dataset_fingerprint": dataset_lookup.dataset_fingerprint,
+            "imported_at": dataset_lookup.imported_at.isoformat() if dataset_lookup.imported_at else None,
+            "recorded_at": dataset_lookup.recorded_at.isoformat() if dataset_lookup.recorded_at else None,
+            "match_type": dataset_lookup.match_type,
+        }
+        analysis = RiskAnalysis(
+            risk_score=100,
+            confidence=100.0,
+            threat_type="Known malicious URL in imported dataset",
+            prediction="malicious",
+            signals=[ThreatSignal(
+                indicator_type="dataset_known_malicious",
+                description="The exact normalized URL appears in an imported dataset with a malicious label.",
+                severity="critical",
+                evidence={"source_label": dataset_lookup.source_label, "match_type": dataset_lookup.match_type},
+            )],
+            features={"detection_source": "url_dataset", "dataset_match": provenance},
+            explanation={
+                "summary": (
+                    "This exact URL matched a maliciously labeled dataset record. The destination was not opened."
+                    if dataset_lookup.match_type == "exact_url"
+                    else "The dataset record had no scheme; its hostname, path, and query matched exactly. The destination was not opened."
+                ),
+                "detection_source": "url_dataset",
+                "dataset_match": provenance,
+            },
+            model_name="url-dataset-index",
+            model_version=(dataset_lookup.dataset_fingerprint or "unknown")[:16],
+            source="dataset_exact_match",
+        )
+        stored_scan = await _finish_scan(db, current_user, "url", safe_scan_preview("url", normalized_url), analysis)
+        scan_response = _inline_scan(stored_scan, analysis)
+        return UrlDecisionResponse(
+            outcome="dataset_match",
+            dataset_lookup=lookup_response,
+            risk_assessment=UrlRiskAssessmentResponse(
+                verdict="known_malicious", risk_score=100,
+                method="exact URL dataset match" if dataset_lookup.match_type == "exact_url" else "scheme-agnostic exact host/path/query dataset match",
+                explanation=("Detection came from the imported dataset; no browser execution was needed."
+                             if dataset_lookup.match_type == "exact_url"
+                             else "The dataset record omitted its URL scheme; host, path, and query matched exactly. No browser execution was needed."),
+                indicators=["dataset_known_malicious"],
+                limitations=["The dataset has no per-record timestamp; imported_at is the import time."],
+            ),
+            reachability="not_checked",
+            scan=scan_response,
+        )
+
+    capability = get_sandbox_status()
+    if capability.available:
+        try:
+            job = await submit_url_sandbox(SandboxUrlRequest(url=normalized_url), current_user, db)
+            return UrlDecisionResponse(
+                outcome="sandbox_queued",
+                dataset_lookup=lookup_response,
+                reachability="pending",
+                sandbox_job=job,
+            )
+        except HTTPException as exc:
+            if exc.status_code != status.HTTP_409_CONFLICT:
+                if exc.status_code != status.HTTP_503_SERVICE_UNAVAILABLE:
+                    raise
+                capability = get_sandbox_status()
+            else:
+                static_analysis = analyze_url(normalized_url)
+                scan_response = await _finish_unverified_url(db, current_user, normalized_url, static_analysis)
+                return UrlDecisionResponse(
+                    outcome="sandbox_blocked",
+                    dataset_lookup=lookup_response,
+                    risk_assessment=_static_risk(
+                        static_analysis,
+                        method="local static URL heuristics",
+                        explanation="No malicious dataset entry matched. Scan history is disabled, so a durable isolated-browser job cannot be queued.",
+                        limitations=["Static heuristics cannot establish that an unmatched URL is safe.", "No browser navigation occurred."],
+                    ),
+                    reachability="unknown",
+                    reason="history_persistence_disabled",
+                    scan=scan_response,
+                )
+
+    static_analysis = analyze_url(normalized_url)
+    scan_response = await _finish_unverified_url(db, current_user, normalized_url, static_analysis)
+    return UrlDecisionResponse(
+        outcome="runtime_unavailable",
+        dataset_lookup=lookup_response,
+        risk_assessment=_static_risk(
+            static_analysis,
+            method="local static URL heuristics",
+            explanation="No malicious dataset entry matched. The isolated browser runtime is unavailable, so this result is unverified.",
+            limitations=["No sandbox navigation or reachability check occurred.", "A low static heuristic score is not a safe verdict."],
+        ),
+        reachability="runtime_unavailable",
+        reason=capability.reason or "sandbox_execution_unavailable",
+        scan=scan_response,
+    )
 
 
 @router.post(

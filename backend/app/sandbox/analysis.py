@@ -49,10 +49,22 @@ def analyze_observations(observations: dict) -> dict:
         })
 
     score = min(100, score)
-    classification = "high" if score >= 60 else "medium" if score >= 30 else "safe"
+    classification = "high" if score >= 60 else "medium" if score >= 30 else "unverified"
+    navigation_error = str(navigation.get("error_type") or "").lower()
+    if navigation.get("http_status") is not None:
+        reachability = "reachable"
+    elif int(observations.get("blocked_request_count") or 0) > 0:
+        reachability = "blocked"
+    elif "timeout" in navigation_error:
+        reachability = "timed_out"
+    elif navigation_error:
+        reachability = "unreachable"
+    else:
+        reachability = "unknown"
     return {
         "classification": classification,
         "risk_score": score,
+        "reachability": reachability,
         "findings": findings,
         "method": {"name": "ScamShield sandbox URL heuristics", "ruleset_version": RULESET_VERSION},
         "conclusion": (
@@ -61,6 +73,8 @@ def analyze_observations(observations: dict) -> dict:
         ),
         "limitations": [
             "No threat-intelligence or reputation service was queried.",
+            "A reachable destination and the absence of matched rules do not prove that a site is safe.",
+            "Unreachable or blocked destinations are not by themselves evidence of maliciousness.",
             "Page forms were observed but never submitted.",
             "Downloads were not saved or opened.",
             "Page text, cookies, authorization headers, and screenshots were not retained.",

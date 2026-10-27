@@ -234,6 +234,20 @@ class SandboxJob(Base):
     scan: Mapped["Scan"] = relationship(back_populates="sandbox_job")
 
 
+class UrlDatasetRecord(Base):
+    """Hash-only exact URL index imported from reviewed threat datasets."""
+
+    __tablename__ = "url_dataset_records"
+
+    canonical_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    source_label: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    dataset_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    record_source: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    dataset_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    recorded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class AnalysisResult(Base):
     __tablename__ = "analysis_results"
 

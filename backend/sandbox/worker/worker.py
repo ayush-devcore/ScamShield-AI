@@ -71,6 +71,7 @@ async def analyze(target: str) -> dict:
     final_status = None
     content_type = None
     navigation_error = None
+    blocked_request_count = 0
 
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(
@@ -89,9 +90,11 @@ async def analyze(target: str) -> dict:
             page.set_default_timeout(5000)
 
             async def guard(route):
+                nonlocal blocked_request_count
                 if validate_request_url(route.request.url):
                     await route.continue_()
                 else:
+                    blocked_request_count += 1
                     await route.abort("blockedbyclient")
 
             await page.route("**/*", guard)
@@ -185,6 +188,7 @@ async def analyze(target: str) -> dict:
                 "frames": frames,
                 "forms": forms,
                 "download_attempt_count": download_attempts,
+                "blocked_request_count": blocked_request_count,
                 "screenshot": {"available": False, "reason": "Screenshots are omitted to avoid retaining arbitrary page content."},
             }
             await context.close()

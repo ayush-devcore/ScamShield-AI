@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AlertCircle, ArrowRight, Link2, ShieldCheck } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 
-import { createUrlScan } from "@/lib/api";
+import { createUrlDecision } from "@/lib/api";
 
 export default function UrlScanner() {
   const [url, setUrl] = useState("");
@@ -26,8 +26,14 @@ export default function UrlScanner() {
     setAnalyzing(true);
 
     try {
-      const scan = await createUrlScan(trimmedUrl);
-      navigate(`/threat/${scan.id}`, { state: scan.analysis ? { inlineScan: scan } : undefined });
+      const result = await createUrlDecision(trimmedUrl);
+      if (result.outcome === "sandbox_queued" && result.sandbox_job) {
+        navigate("/sandbox", { state: { initialJob: result.sandbox_job } });
+      } else if (result.scan) {
+        navigate(`/threat/${result.scan.id}`, { state: { inlineScan: result.scan, urlDecision: result } });
+      } else {
+        setError("No URL assessment result was returned.");
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -49,7 +55,7 @@ export default function UrlScanner() {
         </div>
         <h1 className="mt-3 text-3xl font-semibold text-white">Analyze URL</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-          The URL is inspected locally for suspicious structure. ScamShield never opens or fetches the submitted destination.
+          ScamShield first checks an imported malicious URL dataset. Unmatched URLs are sent to the isolated browser only when its restricted runtime is verified; otherwise the result remains unverified.
         </p>
       </div>
 
