@@ -1,8 +1,11 @@
-from uuid import UUID
+from datetime import datetime, timezone
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.dependencies import get_current_user
@@ -13,6 +16,8 @@ from app.db.models import (
     User,
 )
 from app.db.session import get_db
+from app.services.audit import record_activity
+from app.services.notifications import create_scan_risk_notification, scan_history_enabled
 from app.schemas.scans import (
     AnalysisResultResponse,
     MessageScanRequest,
@@ -41,11 +46,7 @@ router = APIRouter(
     tags=["Scans"],
 )
 
-def _persist_analysis_result(
-    db: AsyncSession,
-    scan: Scan,
-    analysis,
-) -> None:
+def _apply_analysis_result(scan: Scan, analysis) -> None:
     scan.risk_score = analysis.risk_score
     scan.confidence = analysis.confidence
     scan.threat_type = analysis.threat_type
@@ -59,6 +60,8 @@ def _persist_analysis_result(
     else:
         scan.status = "safe"
 
+def _persist_analysis_result(db: AsyncSession, scan: Scan, analysis) -> None:
+    _apply_analysis_result(scan, analysis)
     db.add(
         AnalysisResult(
             scan_id=scan.id,
@@ -83,47 +86,102 @@ def _persist_analysis_result(
         )
 
 
+def _record_scan_activity(db: AsyncSession, scan: Scan) -> None:
+    record_activity(db, scan.user_id, "scan_completed")
+    if scan.status == "critical":
+        record_activity(db, scan.user_id, "scan_critical_risk")
+    elif scan.status == "high":
+        record_activity(db, scan.user_id, "scan_high_risk")
+
+
+async def _finish_scan(db: AsyncSession, user: User, input_type: str, preview: str, analysis) -> Scan | ScanResponse:
+    persist_history = await scan_history_enabled(db, user.id)
+    now = datetime.now(timezone.utc)
+    scan = Scan(
+        id=uuid4(),
+        user_id=user.id,
+        input_type=input_type,
+        status="analyzing",
+        redacted_preview=preview,
+    )
+    if not persist_history:
+        scan.created_at = now
+        scan.completed_at = now
+    if persist_history:
+        db.add(scan)
+        await db.flush()
+        _persist_analysis_result(db, scan, analysis)
+        _record_scan_activity(db, scan)
+    else:
+        # Return the genuine classification without creating history rows.
+        _apply_analysis_result(scan, analysis)
+
+    await create_scan_risk_notification(db, user.id, scan.status, scan.id if persist_history else None)
+    await db.commit()
+    if persist_history:
+        await db.refresh(scan)
+        return scan
+    return ScanResponse(
+        id=scan.id,
+        input_type=scan.input_type,
+        status=scan.status,
+        risk_score=scan.risk_score,
+        confidence=scan.confidence,
+        threat_type=scan.threat_type,
+        redacted_preview=scan.redacted_preview,
+        created_at=scan.created_at,
+        analysis=AnalysisResultResponse(
+            id=uuid4(),
+            model_name=analysis.model_name,
+            model_version=analysis.model_version,
+            prediction=analysis.prediction,
+            probability=analysis.risk_score / 100,
+            features=sanitize_analysis_payload(analysis.features),
+            explanation=sanitize_analysis_payload(analysis.explanation),
+            created_at=now,
+        ),
+        indicators=[
+            ThreatIndicatorResponse(
+                id=uuid4(),
+                indicator_type=signal.indicator_type,
+                description=safe_indicator_description(signal.indicator_type),
+                severity=signal.severity,
+                evidence=sanitize_analysis_payload(signal.evidence),
+            )
+            for signal in analysis.signals
+        ],
+    )
+
+
 @router.post(
     "/message",
     response_model=ScanResponse,
+    response_model_exclude_none=True,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_message_scan(
     payload: MessageScanRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Scan:
+) -> Scan | ScanResponse:
     message = payload.message.strip()
 
     analysis = analyze_message(message)
 
-    scan = Scan(
-        user_id=current_user.id,
-        input_type="message",
-        status="analyzing",
-        redacted_preview=safe_scan_preview("message"),
-    )
-
-    db.add(scan)
-    await db.flush()
-    _persist_analysis_result(db, scan, analysis)
-
-    await db.commit()
-    await db.refresh(scan)
-
-    return scan
+    return await _finish_scan(db, current_user, "message", safe_scan_preview("message"), analysis)
 
 
 @router.post(
     "/url",
     response_model=ScanResponse,
+    response_model_exclude_none=True,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_url_scan(
     payload: URLScanRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Scan:
+) -> Scan | ScanResponse:
     url = payload.url.strip()
 
     if not url:
@@ -140,33 +198,20 @@ async def create_url_scan(
             detail=str(exc),
         ) from exc
 
-    scan = Scan(
-        user_id=current_user.id,
-        input_type="url",
-        status="analyzing",
-        redacted_preview=safe_scan_preview("url", url),
-    )
-
-    db.add(scan)
-    await db.flush()
-    _persist_analysis_result(db, scan, analysis)
-
-    await db.commit()
-    await db.refresh(scan)
-
-    return scan
+    return await _finish_scan(db, current_user, "url", safe_scan_preview("url", url), analysis)
 
 
 @router.post(
     "/qr",
     response_model=ScanResponse,
+    response_model_exclude_none=True,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_qr_scan(
     payload: QRScanRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Scan:
+) -> Scan | ScanResponse:
     text = (payload.payload or "").strip()
 
     if not text:
@@ -186,33 +231,20 @@ async def create_qr_scan(
     else:
         analysis = analyze_message(text)
 
-    scan = Scan(
-        user_id=current_user.id,
-        input_type="qr",
-        status="analyzing",
-        redacted_preview=safe_scan_preview("qr"),
-    )
-
-    db.add(scan)
-    await db.flush()
-    _persist_analysis_result(db, scan, analysis)
-
-    await db.commit()
-    await db.refresh(scan)
-
-    return scan
+    return await _finish_scan(db, current_user, "qr", safe_scan_preview("qr"), analysis)
 
 
 @router.post(
     "/screenshot",
     response_model=ScanResponse,
+    response_model_exclude_none=True,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_screenshot_scan(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Scan:
+) -> Scan | ScanResponse:
     try:
         content = await read_screenshot_upload(
             file,
@@ -245,21 +277,7 @@ async def create_screenshot_scan(
             detail=str(exc),
         ) from exc
 
-    scan = Scan(
-        user_id=current_user.id,
-        input_type="screenshot",
-        status="analyzing",
-        redacted_preview=safe_scan_preview("screenshot"),
-    )
-
-    db.add(scan)
-    await db.flush()
-    _persist_analysis_result(db, scan, analysis)
-
-    await db.commit()
-    await db.refresh(scan)
-
-    return scan
+    return await _finish_scan(db, current_user, "screenshot", safe_scan_preview("screenshot"), analysis)
 
 
 @router.get(
@@ -281,6 +299,61 @@ async def get_scan_history(
     for scan in scans:
         scan.redacted_preview = safe_scan_preview(scan.input_type, scan.redacted_preview)
     return scans
+
+
+@router.get("/export")
+async def export_scan_data(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    rows = (await db.execute(
+        select(Scan)
+        .where(Scan.user_id == current_user.id)
+        .options(selectinload(Scan.analysis_results), selectinload(Scan.threat_indicators))
+        .order_by(Scan.created_at.desc())
+    )).scalars().unique().all()
+    exported = []
+    for scan in rows:
+        analyses = sorted(scan.analysis_results, key=lambda row: row.created_at, reverse=True)
+        analysis = analyses[0] if analyses else None
+        exported.append({
+            "id": str(scan.id),
+            "input_type": scan.input_type,
+            "status": scan.status,
+            "risk_score": scan.risk_score,
+            "confidence": scan.confidence,
+            "threat_type": scan.threat_type,
+            "preview": safe_scan_preview(scan.input_type, scan.redacted_preview),
+            "created_at": scan.created_at.isoformat(),
+            "analysis": ({
+                "model_name": analysis.model_name,
+                "model_version": analysis.model_version,
+                "prediction": analysis.prediction,
+                "probability": analysis.probability,
+                "features": sanitize_analysis_payload(analysis.features),
+                "explanation": sanitize_analysis_payload(analysis.explanation),
+            } if analysis else None),
+            "indicators": [{
+                "indicator_type": item.indicator_type,
+                "description": safe_indicator_description(item.indicator_type),
+                "severity": item.severity,
+                "evidence": sanitize_analysis_payload(item.evidence),
+            } for item in scan.threat_indicators],
+        })
+    return JSONResponse(
+        content={"exported_at": datetime.now(timezone.utc).isoformat(), "scans": exported},
+        headers={"Content-Disposition": 'attachment; filename="scamshield-scan-export.json"'},
+    )
+
+
+@router.delete("/history")
+async def delete_scan_history(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(delete(Scan).where(Scan.user_id == current_user.id))
+    await db.commit()
+    return {"deleted_count": int(result.rowcount or 0)}
 
 
 @router.get(

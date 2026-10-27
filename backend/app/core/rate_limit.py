@@ -57,6 +57,22 @@ async def clear_login_attempts(key: str) -> None:
     except RedisError as exc:
         raise RateLimitUnavailable from exc
 
+async def consume_once(key: str, ttl_seconds: int) -> bool:
+    """Atomically claim a key once with a bounded lifetime."""
+    if ttl_seconds < 1:
+        raise ValueError("ttl_seconds must be positive")
+
+    try:
+        return bool(
+            await redis_client.set(
+                key,
+                "1",
+                ex=ttl_seconds,
+                nx=True,
+            )
+        )
+    except (RedisError, TypeError, ValueError) as exc:
+        raise RateLimitUnavailable from exc
 
 def login_is_blocked(attempts: int) -> bool:
     """Return whether the account/IP should be temporarily blocked."""

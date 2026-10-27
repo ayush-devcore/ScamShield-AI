@@ -1,5 +1,6 @@
-import { Bell, LogOut, Menu, Search, ShieldCheck } from "lucide-react";
+import { LogOut, Menu, Search, ShieldCheck } from "lucide-react";
 import { logout } from "@/lib/api";
+import { NotificationCenter } from "./NotificationCenter";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -7,7 +8,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-cyan-400/[0.07] bg-[#05090c]/80 px-4 backdrop-blur-xl sm:px-6">
+    <header className="app-header sticky top-0 z-30 flex h-16 items-center justify-between border-b border-cyan-400/[0.07] px-4 backdrop-blur-xl sm:px-6">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
@@ -35,10 +36,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <span className="ml-4 rounded border border-slate-800 px-1.5 py-0.5 text-[9px]">/</span>
         </button>
 
-        <button className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-800/60 hover:text-cyan-300" aria-label="Notifications">
-          <Bell className="h-4 w-4" />
-          <span className="cyber-pulse absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-400" />
-        </button>
+        <NotificationCenter />
 
         <button
           type="button"

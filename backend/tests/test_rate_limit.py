@@ -55,6 +55,15 @@ class AtomicFakeRedis:
         if numkeys != 1 or "redis.call('INCR'" not in script or "redis.call('EXPIRE'" not in script:
             raise AssertionError("Increment and expiry must be performed by one Redis script")
 
+    async def set(self, key: str, value: str, ex: int | None = None, nx: bool = False) -> bool | None:
+        async with self.lock:
+            if nx and self._live_value(key) is not None:
+                return None
+            self.values[key] = value
+            if ex is not None:
+                self.expires[key] = self.now + ex
+            return True
+
     async def delete(self, key: str) -> None:
         self.values.pop(key, None)
         self.expires.pop(key, None)
@@ -62,6 +71,9 @@ class AtomicFakeRedis:
 
 class FailingRedis:
     async def get(self, key: str):
+        raise RedisConnectionError("redis host and credentials must not leak")
+
+    async def set(self, *args, **kwargs):
         raise RedisConnectionError("redis host and credentials must not leak")
 
     async def eval(self, *args):
@@ -153,9 +165,28 @@ class LoginRateLimitTests(unittest.TestCase):
                     rate_limit.get_login_attempts("key"),
                     rate_limit.record_failed_login("key"),
                     rate_limit.clear_login_attempts("key"),
+                    rate_limit.consume_once("key", 60),
                 ):
                     with self.assertRaises(RateLimitUnavailable):
                         await operation
+
+        asyncio.run(scenario())
+
+    def test_consume_once_succeeds_once_and_expires(self):
+        async def scenario():
+            client = AtomicFakeRedis()
+            with patch.object(rate_limit, "redis_client", client):
+                self.assertTrue(await rate_limit.consume_once("challenge-key", 30))
+                self.assertFalse(await rate_limit.consume_once("challenge-key", 30))
+                client.now += 31
+                self.assertTrue(await rate_limit.consume_once("challenge-key", 30))
+
+        asyncio.run(scenario())
+
+    def test_consume_once_requires_positive_ttl(self):
+        async def scenario():
+            with self.assertRaises(ValueError):
+                await rate_limit.consume_once("key", 0)
 
         asyncio.run(scenario())
 

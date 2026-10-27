@@ -11,13 +11,17 @@ import { StatCard } from "@/components/ui/StatCard";
 import { ThreatActivity } from "@/components/dashboard/ThreatActivity";
 import { ThreatDistribution } from "@/components/dashboard/ThreatDistribution";
 import { RecentScans } from "@/components/dashboard/RecentScans";
-import { getCurrentUser, getDashboard, type DashboardData, type UserSummary } from "@/lib/api";
+import { SecurityActivityTerminal } from "@/components/dashboard/SecurityActivityTerminal";
+import { getCurrentUser, getDashboard, getSecurityActivity, type DashboardData, type SecurityActivity, type UserSummary } from "@/lib/api";
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [currentUser, setCurrentUser] = useState<UserSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activity, setActivity] = useState<SecurityActivity[]>([]);
+  const [activityLoading, setActivityLoading] = useState(true);
+  const [activityError, setActivityError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -51,6 +55,12 @@ export default function Dashboard() {
     }
 
     loadDashboard();
+    async function loadActivity() {
+      try { setActivityLoading(true); setActivityError(""); setActivity(await getSecurityActivity()); }
+      catch (err) { setActivityError(err instanceof Error ? err.message : "Unable to load activity."); }
+      finally { setActivityLoading(false); }
+    }
+    void loadActivity();
     const refreshWhenFocused = () => {
       if (document.visibilityState === "visible") void loadDashboard(false);
     };
@@ -157,6 +167,8 @@ export default function Dashboard() {
         <ThreatActivity data={threat_activity} />
         <ThreatDistribution data={threat_distribution} total={stats.total_scans} />
       </div>
+
+      <SecurityActivityTerminal activity={activity} loading={activityLoading} error={activityError} onRetry={() => { setActivityLoading(true); setActivityError(""); getSecurityActivity().then(setActivity).catch((err: unknown) => setActivityError(err instanceof Error ? err.message : "Unable to load activity.")).finally(() => setActivityLoading(false)); }} />
 
       <RecentScans data={recent_scans} />
     </div>

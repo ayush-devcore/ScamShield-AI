@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0B1220" />
+    <title>Offline · ScamShield AI</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #0b1220; color: #f6f9ff; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+      main { width: min(100%, 440px); border: 1px solid #2d405c; border-radius: 22px; padding: 28px; background: #121d30; box-shadow: 0 24px 70px #0005; }
+      .mark { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid #40dff255; border-radius: 15px; color: #40dff2; font-size: 24px; }
+      h1 { margin: 22px 0 8px; font-size: 24px; letter-spacing: -.03em; }
+      p { color: #bdcadb; font-size: 14px; line-height: 1.7; }
+      #state { color: #ffc66d; }
+      button { width: 100%; min-height: 46px; margin-top: 12px; border: 0; border-radius: 12px; background: #40dff2; color: #07131f; font: inherit; font-weight: 700; cursor: pointer; }
+      @media (prefers-reduced-motion: no-preference) { main { animation: arrive 240ms ease-out both; } @keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true">⌁</div>
+      <h1>You’re offline</h1>
+      <p>ScamShield needs a connection to analyze content and load your account data. No scan has been queued or submitted.</p>
+      <p id="state" role="status">Checking network connection…</p>
+      <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+    <script>
+      const state = document.getElementById("state");
+      function update() { state.textContent = navigator.onLine ? "Network is available. Retry to reconnect to ScamShield." : "No network connection detected. Server-backed features are unavailable."; }
+      addEventListener("online", update);
+      addEventListener("offline", update);
+      update();
+    </script>
+  </body>
+</html>

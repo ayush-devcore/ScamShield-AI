@@ -7,6 +7,7 @@ import {
   MessageSquare,
   QrCode,
   ScanLine,
+  ShieldAlert,
   Settings,
   ShieldCheck,
   ShieldPlus,
@@ -28,6 +29,7 @@ const navigation = [
       { label: "URL", to: "/scan/url", icon: Link2 },
       { label: "QR Code", to: "/scan/qr", icon: QrCode },
       { label: "Screenshot", to: "/scan/screenshot", icon: ImageIcon },
+      { label: "Sandbox Analysis", to: "/sandbox", icon: ShieldAlert },
     ],
   },
   {
@@ -91,7 +93,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   return (
     <>
       <aside
-        className={`fixed inset-y-0 left-0 z-50 hidden border-r border-cyan-400/[0.08] bg-[#071014]/95 backdrop-blur-xl transition-all duration-300 lg:flex lg:flex-col ${
+        className={`app-sidebar fixed inset-y-0 left-0 z-50 hidden border-r border-cyan-400/[0.08] backdrop-blur-xl transition-all duration-300 lg:flex lg:flex-col ${
           collapsed ? "w-[78px]" : "w-[250px]"
         }`}
       >
@@ -135,7 +137,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         />
 
         <aside
-          className={`relative flex h-full w-[285px] flex-col border-r border-cyan-400/10 bg-[#071014] shadow-2xl shadow-black transition-transform duration-300 ${
+          className={`app-sidebar relative flex h-full w-[285px] flex-col border-r border-cyan-400/10 shadow-2xl shadow-black transition-transform duration-300 ${
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -150,7 +152,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         </aside>
       </div>
 
-      <nav className="safe-area-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-cyan-400/[0.08] bg-[#071014]/95 px-2 pt-2 backdrop-blur-xl lg:hidden">
+      <nav className="app-mobile-nav safe-area-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-cyan-400/[0.08] px-2 pt-2 backdrop-blur-xl lg:hidden">
         <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
           {[
             { label: "Home", to: "/dashboard", icon: LayoutDashboard },

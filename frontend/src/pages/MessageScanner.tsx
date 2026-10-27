@@ -27,7 +27,7 @@ export default function MessageScanner() {
     try {
       const scan = await createMessageScan(trimmedMessage);
 
-      navigate(`/threat/${scan.id}`);
+      navigate(`/threat/${scan.id}`, { state: scan.analysis ? { inlineScan: scan } : undefined });
     } catch (err) {
       setError(
         err instanceof Error

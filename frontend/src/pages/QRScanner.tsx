@@ -149,7 +149,7 @@ export default function QRScanner() {
 
     try {
       const scan = await createQrScan(trimmed);
-      navigate(`/threat/${scan.id}`);
+      navigate(`/threat/${scan.id}`, { state: scan.analysis ? { inlineScan: scan } : undefined });
     } catch (err) {
       setError(
         err instanceof Error

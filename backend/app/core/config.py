@@ -20,6 +20,18 @@ class Settings(BaseSettings):
     frontend_origin: str = "http://localhost:5173"
 
     max_upload_size_mb: int = 8
+    mfa_encryption_key: str | None = None
+    mfa_challenge_expire_minutes: int = 5
+    session_idle_timeout_minutes: int = 30
+
+    sandbox_runtime_enabled: bool = False
+    sandbox_network_verified: bool = False
+    sandbox_worker_image: str = "scamshield-playwright-worker:1.64.1"
+    sandbox_internal_network: str = "scamshield-sandbox-internal"
+    sandbox_egress_network: str = "scamshield-sandbox-egress-net"
+    sandbox_proxy_container: str = "scamshield-sandbox-egress"
+    sandbox_encryption_key: str | None = None
+    sandbox_job_timeout_seconds: int = 90
 
     safe_browsing_api_key: str | None = None
     phishtank_app_key: str | None = None

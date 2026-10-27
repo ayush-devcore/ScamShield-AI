@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Clock3, ShieldAlert } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useLocation, useNavigate, useParams } from "react-router";
 
 import { RiskGauge } from "@/components/ui/RiskGauge";
 import { Indicator } from "@/components/threat/Indicator";
 import { RecommendationCard } from "@/components/threat/RecommendationCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { getScanDetail, type ScanDetailData } from "@/lib/api";
+import { getScanDetail, type MessageScanResponse, type ScanDetailData } from "@/lib/api";
 
 function formatIndicatorTitle(type: string) {
   return type
@@ -39,6 +39,8 @@ function getRiskLabel(score: number | null) {
 export default function ThreatResult() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const inlineScan = (location.state as { inlineScan?: MessageScanResponse } | null)?.inlineScan;
 
   const [scan, setScan] = useState<ScanDetailData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,6 +54,23 @@ export default function ThreatResult() {
     }
 
     const scanId = id;
+
+    if (inlineScan?.id === scanId && inlineScan.analysis) {
+      setScan({
+        id: inlineScan.id,
+        input_type: inlineScan.input_type,
+        status: inlineScan.status,
+        risk_score: inlineScan.risk_score,
+        confidence: inlineScan.confidence,
+        threat_type: inlineScan.threat_type,
+        created_at: inlineScan.created_at,
+        analysis: inlineScan.analysis,
+        indicators: inlineScan.indicators ?? [],
+      });
+      setError("");
+      setLoading(false);
+      return;
+    }
 
     let cancelled = false;
 
@@ -83,7 +102,7 @@ export default function ThreatResult() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, inlineScan]);
 
   if (loading) {
     return (
