@@ -21,6 +21,25 @@ end
 return attempts
 """
 
+_CONSUME_BUDGET = """
+for i, key in ipairs(KEYS) do
+    local current = tonumber(redis.call('GET', key) or '0')
+    local limit = tonumber(ARGV[(i * 2) - 1])
+    if current >= limit then
+        return {0, i, current}
+    end
+end
+local highest = 0
+for i, key in ipairs(KEYS) do
+    local count = redis.call('INCR', key)
+    if count == 1 then
+        redis.call('EXPIRE', key, tonumber(ARGV[i * 2]))
+    end
+    if count > highest then highest = count end
+end
+return {1, 0, highest}
+"""
+
 
 class RateLimitUnavailable(Exception):
     """Raised when Redis cannot provide a trustworthy rate-limit state."""
@@ -72,6 +91,23 @@ async def consume_once(key: str, ttl_seconds: int) -> bool:
             )
         )
     except (RedisError, TypeError, ValueError) as exc:
+        raise RateLimitUnavailable from exc
+
+
+async def consume_request_budget(
+    keys: list[str],
+    limits_and_ttls: list[tuple[int, int]],
+) -> tuple[bool, int | None]:
+    """Atomically enforce bounded hourly/daily request counters in Redis."""
+    if not keys or len(keys) != len(limits_and_ttls) or any(limit < 1 or ttl < 1 for limit, ttl in limits_and_ttls):
+        raise ValueError("Invalid request budget configuration")
+    arguments = [value for limit_ttl in limits_and_ttls for value in limit_ttl]
+    try:
+        result = await redis_client.eval(_CONSUME_BUDGET, len(keys), *keys, *arguments)
+        allowed = bool(int(result[0]))
+        exceeded_bucket = int(result[1])
+        return allowed, exceeded_bucket or None
+    except (RedisError, TypeError, ValueError, IndexError) as exc:
         raise RateLimitUnavailable from exc
 
 def login_is_blocked(attempts: int) -> bool:

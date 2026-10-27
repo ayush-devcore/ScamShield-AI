@@ -187,7 +187,7 @@ export default function History() {
                     </td>
                     <td className="px-5 py-4 text-xs text-slate-500">{scan.input_type}</td>
                     <td className="px-5 py-4 text-xs font-semibold text-white">{scan.risk_score ?? 0}/100</td>
-                    <td className="px-5 py-4 text-xs text-slate-500">{scan.confidence ?? 0}%</td>
+                    <td className="px-5 py-4 text-xs text-slate-500">{scan.input_type === "message" ? "Not calibrated" : scan.confidence !== null ? `${scan.confidence}%` : "—"}</td>
                     <td className="px-5 py-4"><StatusBadge status={scan.status} /></td>
                     <td className="px-5 py-4 text-[11px] text-slate-600">{formatDate(scan.created_at)}</td>
                   </tr>

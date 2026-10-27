@@ -14,7 +14,7 @@ interface RecentScan {
   type: string;
   score: number | null;
   confidence: number | null;
-  status: "critical" | "high" | "medium" | "safe";
+  status: "critical" | "high" | "medium" | "safe" | "unverified";
   date: string;
 }
 
@@ -160,7 +160,7 @@ export function RecentScans({ data }: RecentScansProps) {
                   </td>
 
                   <td className="px-5 py-4 text-xs text-slate-400">
-                    {scan.confidence ?? 0}%
+                    {scan.type === "MESSAGE" ? "Not calibrated" : scan.confidence !== null ? `${scan.confidence}%` : "—"}
                   </td>
 
                   <td className="px-5 py-4">

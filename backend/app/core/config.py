@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,6 +36,16 @@ class Settings(BaseSettings):
 
     safe_browsing_api_key: str | None = None
     phishtank_app_key: str | None = None
+
+    openrouter_api_key: str | None = None
+    openrouter_model: str = "google/gemini-3.1-flash-lite"
+    openrouter_timeout_seconds: float = Field(default=8.0, ge=1.0, le=30.0)
+    openrouter_max_input_chars: int = Field(default=10000, ge=256, le=10000)
+    openrouter_max_output_tokens: int = Field(default=420, ge=100, le=1000)
+    openrouter_per_user_hourly_limit: int = Field(default=5, ge=1, le=100)
+    openrouter_per_user_daily_limit: int = Field(default=20, ge=1, le=1000)
+    openrouter_global_daily_limit: int = Field(default=500, ge=1, le=10000)
+    openrouter_max_concurrency: int = Field(default=8, ge=1, le=64)
 
     log_level: str = "INFO"
 

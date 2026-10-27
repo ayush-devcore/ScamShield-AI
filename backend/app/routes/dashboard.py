@@ -29,10 +29,12 @@ def display_status(scan: Scan) -> str:
     if scan.status in {"queued", "analyzing"}:
         return scan.status
 
-    if scan.status in {"critical", "high", "medium", "safe"}:
+    if scan.status in {"critical", "high", "medium", "safe", "unverified"}:
         return scan.status
 
     # Fallback for unexpected legacy rows.
+    if scan.input_type == "message" and scan.risk_score is not None and scan.risk_score < 30:
+        return "unverified"
     if scan.risk_score is None:
         return "queued"
 

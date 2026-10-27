@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -51,6 +52,34 @@ class AnalysisResultResponse(BaseModel):
     created_at: datetime
 
 
+class MessageFraudIndicatorAssessment(BaseModel):
+    indicator_type: Literal[
+        "urgency_language", "account_targeting", "credential_request", "financial_context",
+        "possible_impersonation", "suspicious_link_presence", "prize_bait", "call_to_action",
+        "cash_prize_click_combination", "verification_threat", "payment_manipulation",
+        "impersonation_attempt", "credential_theft", "benign_promotion_context",
+    ]
+    severity: Literal["low", "medium", "high", "critical"]
+    evidence_excerpt: str = Field(max_length=160)
+    explanation: str = Field(max_length=280)
+
+
+class MessageFraudAssessment(BaseModel):
+    risk_score: int = Field(ge=0, le=100)
+    verdict: Literal["safe", "suspicious", "high_risk", "unverified"]
+    summary: str = Field(max_length=360)
+    indicators: list[MessageFraudIndicatorAssessment] = Field(max_length=8)
+    recommendations: list[str] = Field(max_length=5)
+    analysis_source: Literal["ai_plus_rules", "rules_only"]
+    provider_status: Literal[
+        "ok", "not_configured", "rate_limited", "usage_limit_reached", "limit_backend_unavailable",
+        "concurrency_limited", "timeout", "provider_error", "provider_unavailable", "invalid_api_key",
+        "invalid_json", "invalid_schema", "empty_response", "input_too_long",
+    ]
+    model: str | None = None
+    latency_ms: int | None = Field(default=None, ge=0)
+
+
 class ScanResponse(BaseModel):
     id: UUID
     input_type: str
@@ -62,6 +91,7 @@ class ScanResponse(BaseModel):
     created_at: datetime
     analysis: AnalysisResultResponse | None = None
     indicators: list[ThreatIndicatorResponse] | None = None
+    message_assessment: MessageFraudAssessment | None = None
 
 
 class UrlDatasetLookupResponse(BaseModel):

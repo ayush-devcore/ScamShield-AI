@@ -3,7 +3,7 @@ import os
 import unittest
 from types import SimpleNamespace
 from uuid import uuid4
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
@@ -109,6 +109,32 @@ async def no_attempts(_key):
 
 
 class LoginRateLimitTests(unittest.TestCase):
+    def test_ai_request_budget_uses_one_atomic_shared_counter_script(self):
+        async def scenario():
+            client = SimpleNamespace(eval=AsyncMock(return_value=[1, 0, 4]))
+            keys = ["hour:user", "day:user", "day:global"]
+            with patch.object(rate_limit, "redis_client", client):
+                result = await rate_limit.consume_request_budget(keys, [(5, 3600), (20, 86400), (500, 86400)])
+            self.assertEqual(result, (True, None))
+            args = client.eval.await_args.args
+            self.assertEqual(args[1], 3)
+            self.assertEqual(list(args[2:5]), keys)
+            self.assertEqual(list(args[5:]), [5, 3600, 20, 86400, 500, 86400])
+            self.assertIn("redis.call('GET'", args[0])
+
+        asyncio.run(scenario())
+
+    def test_ai_request_budget_reports_exceeded_bucket_and_fails_closed(self):
+        async def scenario():
+            client = SimpleNamespace(eval=AsyncMock(return_value=[0, 3, 500]))
+            with patch.object(rate_limit, "redis_client", client):
+                self.assertEqual(await rate_limit.consume_request_budget(["a", "b", "c"], [(5, 1), (20, 1), (500, 1)]), (False, 3))
+            with patch.object(rate_limit, "redis_client", FailingRedis()):
+                with self.assertRaises(RateLimitUnavailable):
+                    await rate_limit.consume_request_budget(["a"], [(1, 1)])
+
+        asyncio.run(scenario())
+
     def test_attempts_below_threshold_and_blocking_at_threshold(self):
         async def scenario():
             client = AtomicFakeRedis()

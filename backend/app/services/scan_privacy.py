@@ -11,6 +11,7 @@ _PRIVATE_ANALYSIS_KEYS = {
     "source_text_preview", "ocr_input_name", "path", "query", "fragment",
     "text", "message", "raw_text", "ocr_text", "filename", "file_name",
     "input", "payload",
+    "evidence_excerpt", "message_excerpt", "quote",
 }
 _INDICATOR_DESCRIPTIONS = {
     "dataset_known_malicious": "The exact normalized URL appears in an imported dataset with a malicious label.",
@@ -32,6 +33,14 @@ _INDICATOR_DESCRIPTIONS = {
     "sandbox_http_transport": "The sandbox observed navigation over unencrypted HTTP.",
     "sandbox_cross_origin_form": "The sandbox observed a form action directed to a different origin.",
     "sandbox_download_attempt": "The sandbox observed a download attempt; the file was not saved or opened.",
+    "prize_bait": "The message uses a prize, giveaway, refund, lottery, or reward claim.",
+    "call_to_action": "The message pressures the recipient to click or follow an instruction.",
+    "cash_prize_click_combination": "A promised cash reward is paired with a request to take action.",
+    "verification_threat": "The message threatens account access or eligibility unless verification is completed.",
+    "payment_manipulation": "The message uses payment instructions or financial pressure that should be independently verified.",
+    "impersonation_attempt": "The message may impersonate an organization or authority.",
+    "credential_theft": "The message requests credentials, one-time codes, or other account secrets.",
+    "benign_promotion_context": "The message includes context consistent with a legitimate promotion.",
 }
 
 

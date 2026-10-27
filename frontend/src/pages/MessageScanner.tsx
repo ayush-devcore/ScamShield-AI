@@ -13,6 +13,7 @@ export default function MessageScanner() {
   const [message, setMessage] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
+  const [externalProcessingAcknowledged, setExternalProcessingAcknowledged] = useState(false);
 
   const analyze = async () => {
     const trimmedMessage = message.trim();
@@ -63,8 +64,7 @@ export default function MessageScanner() {
         </h1>
 
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-          Paste suspicious SMS, WhatsApp or email content and ScamShield AI
-          will analyze it for fraud and social-engineering indicators.
+          Paste suspicious SMS, WhatsApp or email content for a rule-based and, when configured, AI-assisted fraud assessment.
         </p>
       </div>
 
@@ -111,6 +111,17 @@ export default function MessageScanner() {
         )}
 
         {/* Actions */}
+        <label className="mt-4 flex items-start gap-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.04] p-3 text-[11px] leading-5 text-slate-300">
+          <input
+            type="checkbox"
+            className="mt-1 accent-cyan-400"
+            checked={externalProcessingAcknowledged}
+            disabled={analyzing}
+            onChange={(event) => setExternalProcessingAcknowledged(event.target.checked)}
+          />
+          <span>I understand that if OpenRouter AI is configured, the message text I submit will be sent to OpenRouter and its selected model provider for analysis. I will remove information I do not want to share.</span>
+        </label>
+
         <div className="mt-4 flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
@@ -127,7 +138,7 @@ export default function MessageScanner() {
           <button
             type="button"
             onClick={analyze}
-            disabled={!message.trim() || analyzing}
+            disabled={!message.trim() || analyzing || !externalProcessingAcknowledged}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-semibold text-[#031014] transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {analyzing ? (
@@ -144,12 +155,12 @@ export default function MessageScanner() {
           </button>
         </div>
 
+        {analyzing && <p className="mt-4 flex items-center gap-2 text-xs text-cyan-200" role="status" aria-live="polite"><ScanLine className="h-4 w-4 animate-pulse" />Running deterministic rules and requesting a bounded AI assessment when available…</p>}
+
         {/* Privacy note */}
         <div className="mt-5 rounded-xl border border-slate-800/60 bg-slate-950/20 px-4 py-3">
           <p className="text-[11px] leading-5 text-slate-600">
-            ScamShield stores a SHA-256 hash of the submitted message for
-            scan tracking rather than permanently storing the original
-            message in the scan record.
+            ScamShield sends only the submitted message text to the external AI service; account details and profile data are not sent. Provider retention and training practices vary by the OpenRouter settings and routed provider. ScamShield does not save the original message or evidence excerpts. If scan history is enabled, it saves the score, source/status, indicator types, and privacy-minimized analysis metadata. See the <a className="text-cyan-300 underline" href="https://openrouter.ai/privacy" target="_blank" rel="noreferrer">OpenRouter privacy policy</a> and <a className="text-cyan-300 underline" href="https://openrouter.ai/docs/guides/features/structured-outputs" target="_blank" rel="noreferrer">structured-output documentation</a>.
           </p>
         </div>
       </div>

@@ -11,6 +11,7 @@ ScanStatus = Literal[
     "high",
     "medium",
     "safe",
+    "unverified",
 ]
 
 

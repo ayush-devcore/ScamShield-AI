@@ -56,7 +56,7 @@ export interface DashboardData {
     type: string;
     score: number | null;
     confidence: number | null;
-    status: "critical" | "high" | "medium" | "safe";
+    status: "critical" | "high" | "medium" | "safe" | "unverified";
     date: string;
   }[];
 }
@@ -144,7 +144,7 @@ export interface ScanAnalysis {
 export interface ScanDetailData {
   id: string;
   input_type: string;
-  status: "queued" | "analyzing" | "safe" | "medium" | "high" | "critical" | "runtime_unavailable";
+  status: "queued" | "analyzing" | "safe" | "medium" | "high" | "critical" | "runtime_unavailable" | "unverified";
   risk_score: number | null;
   confidence: number | null;
   threat_type: string | null;
@@ -320,7 +320,8 @@ export interface MessageScanResponse {
     | "medium"
     | "high"
     | "critical"
-    | "runtime_unavailable";
+    | "runtime_unavailable"
+    | "unverified";
   risk_score: number | null;
   confidence: number | null;
   threat_type: string | null;
@@ -328,6 +329,22 @@ export interface MessageScanResponse {
   created_at: string;
   analysis?: ScanAnalysis | null;
   indicators?: ScanIndicator[] | null;
+  message_assessment?: {
+    risk_score: number;
+    verdict: "safe" | "suspicious" | "high_risk" | "unverified";
+    summary: string;
+    indicators: {
+      indicator_type: string;
+      severity: "low" | "medium" | "high" | "critical";
+      evidence_excerpt: string;
+      explanation: string;
+    }[];
+    recommendations: string[];
+    analysis_source: "ai_plus_rules" | "rules_only";
+    provider_status: string;
+    model?: string | null;
+    latency_ms?: number | null;
+  } | null;
 }
 
 export interface UrlDecisionResponse {
@@ -419,7 +436,8 @@ export interface ScanHistoryItem {
     | "medium"
     | "high"
     | "critical"
-    | "runtime_unavailable";
+    | "runtime_unavailable"
+    | "unverified";
   risk_score: number | null;
   confidence: number | null;
   threat_type: string | null;

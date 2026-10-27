@@ -1,0 +1,22 @@
+[
+  {"label": "malicious", "message": "Hello click here below link to win 10000$ instantly"},
+  {"label": "malicious", "message": "Congratulations, you won a cash prize. Click the link below to claim your reward now."},
+  {"label": "malicious", "message": "You were selected for our lottery. Tap here to collect ₹25000 today."},
+  {"label": "malicious", "message": "Your refund is waiting. Open this link immediately and pay a small release fee."},
+  {"label": "malicious", "message": "Bank alert: your account is blocked. Complete KYC now and send your OTP to restore access."},
+  {"label": "malicious", "message": "Government tax refund approved. Click below and enter your bank password to receive it."},
+  {"label": "malicious", "message": "This is PhonePe support. Transfer ₹1 to verify your account and unlock your reward."},
+  {"label": "malicious", "message": "Courier delivery failed. Pay the redelivery fee through this link within 10 minutes."},
+  {"label": "malicious", "message": "Your password expires today. Sign in here or your account will be suspended."},
+  {"label": "malicious", "message": "Claim your bonus now by sharing the verification code sent to your phone."},
+  {"label": "malicious", "message": "Amazon winner notice: click here to collect your $500 gift card instantly."},
+  {"label": "malicious", "message": "Police case registered against your bank account. Pay this processing charge to avoid arrest."},
+  {"label": "benign", "message": "The city library is holding a free book giveaway Saturday. See the event details on the library website."},
+  {"label": "benign", "message": "Our employee bonus was deposited today. Check your payslip in the usual company portal."},
+  {"label": "benign", "message": "Your online order refund has been processed. The amount will appear on the original payment method."},
+  {"label": "benign", "message": "I won a prize in our family board game last night. It was just for fun."},
+  {"label": "benign", "message": "Click here to join our weekly team meeting at 2 pm."},
+  {"label": "benign", "message": "Reminder: your bank appointment is tomorrow. Please bring identification; never send passwords by message."},
+  {"label": "benign", "message": "This suspicious text says 'you won a prize, click here'. Do not click; report and delete it."},
+  {"label": "benign", "message": "The community raffle is optional and free. Winners will be announced in person; no payment or account details are needed."}
+]

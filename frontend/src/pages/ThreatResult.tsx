@@ -29,7 +29,7 @@ function formatDate(date: string) {
 }
 
 function getRiskLabel(score: number | null, status?: string) {
-  if (status === "runtime_unavailable") return "UNVERIFIED";
+  if (status === "runtime_unavailable" || status === "unverified") return "UNVERIFIED";
   if (score === null) return "PENDING";
   if (score >= 80) return "CRITICAL";
   if (score >= 60) return "HIGH RISK";
@@ -143,6 +143,11 @@ export default function ThreatResult() {
   const status = scan.status;
   const score = scan.risk_score ?? 0;
   const riskLabel = getRiskLabel(scan.risk_score, scan.status);
+  const messageAssessment = inlineScan?.id === scan.id ? inlineScan.message_assessment : null;
+  const storedExplanation = scan.analysis?.explanation;
+  const storedSummary = typeof storedExplanation?.summary === "string" ? storedExplanation.summary : null;
+  const analysisSource = messageAssessment?.analysis_source ?? (typeof storedExplanation?.analysis_source === "string" ? storedExplanation.analysis_source : null);
+  const providerStatus = messageAssessment?.provider_status ?? (typeof storedExplanation?.provider_status === "string" ? storedExplanation.provider_status : null);
 
   const indicatorData = scan.indicators.map((indicator) => {
     const severity: "medium" | "high" | "critical" =
@@ -200,6 +205,24 @@ export default function ThreatResult() {
         {urlDecision.risk_assessment?.limitations?.length ? <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-slate-400">{urlDecision.risk_assessment.limitations.map((item) => <li key={item}>{item}</li>)}</ul> : null}
       </section>}
 
+      {scan.input_type === "message" && <section className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.035] p-5" aria-label="Message fraud assessment">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold text-white">Message assessment</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{messageAssessment?.summary ?? storedSummary ?? "Message assessment details are unavailable."}</p>
+          </div>
+          <div className="text-right text-[11px] text-slate-400">
+            {analysisSource && <p>Source: {analysisSource.replaceAll("_", " ")}</p>}
+            {providerStatus && <p className="mt-1">AI provider: {providerStatus.replaceAll("_", " ")}</p>}
+            {messageAssessment?.model && <p className="mt-1">Model: {messageAssessment.model}</p>}
+            {messageAssessment?.latency_ms != null && <p className="mt-1">Provider response: {messageAssessment.latency_ms} ms</p>}
+          </div>
+        </div>
+        <p className="mt-3 text-[11px] text-slate-500">Risk score mapping: 0–29 low, 30–59 suspicious, 60–100 high risk. Rules-only results below 30 remain unverified. Scores and model output are not calibrated probabilities.</p>
+        {messageAssessment?.indicators.length ? <div className="mt-4 grid gap-3 sm:grid-cols-2">{messageAssessment.indicators.map((item, index) => <div className="rounded-xl border border-slate-700/70 bg-slate-950/30 p-3" key={`${item.indicator_type}-${index}`}><p className="text-xs font-semibold text-cyan-100">{formatIndicatorTitle(item.indicator_type)} <span className="ml-1 text-[10px] font-normal uppercase text-slate-500">{item.severity}</span></p><p className="mt-1 text-xs leading-5 text-slate-400">{item.explanation}</p>{item.evidence_excerpt && <blockquote className="mt-2 border-l-2 border-cyan-400/30 pl-2 text-xs italic text-slate-300">“{item.evidence_excerpt}”</blockquote>}</div>)}</div> : null}
+        {messageAssessment?.recommendations.length ? <ul className="mt-4 list-disc space-y-1 pl-5 text-xs text-slate-300">{messageAssessment.recommendations.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul> : null}
+      </section>}
+
       <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="scam-card risk-pulse rounded-2xl p-5 sm:p-6">
           <div className="flex items-center justify-between">
@@ -236,13 +259,8 @@ export default function ThreatResult() {
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-slate-800 bg-slate-950/30 p-4">
-              <p className="text-[10px] uppercase tracking-wider text-slate-600">
-                Confidence
-              </p>
-
-              <p className="mt-2 text-xl font-semibold text-white">
-                {scan.confidence !== null ? `${scan.confidence}%` : "—"}
-              </p>
+              <p className="text-[10px] uppercase tracking-wider text-slate-600">{scan.input_type === "message" ? "Calibration" : "Confidence"}</p>
+              <p className="mt-2 text-sm font-semibold text-white">{scan.input_type === "message" ? "Not calibrated" : scan.confidence !== null ? `${scan.confidence}%` : "—"}</p>
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-950/30 p-4">

@@ -44,3 +44,6 @@ backend/data/urls/*.csv
 
 # Experimental model binaries; preserve evaluation metadata
 backend/models/candidates/*.joblib
+
+# Local Vite cache
+frontend/.vite/

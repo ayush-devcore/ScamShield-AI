@@ -20,6 +20,7 @@ from app.services.audit import record_activity
 from app.services.notifications import create_scan_risk_notification, scan_history_enabled
 from app.schemas.scans import (
     AnalysisResultResponse,
+    MessageFraudAssessment,
     MessageScanRequest,
     QRScanRequest,
     ScanDetailResponse,
@@ -44,6 +45,8 @@ from app.services.screenshot_analysis import (
     read_screenshot_upload,
     validate_screenshot_upload,
 )
+from app.services.message_assessment import combine_message_assessment
+from app.services.openrouter_messages import classify_message
 from app.schemas.sandbox import SandboxUrlRequest
 from app.services.sandbox_runtime import get_sandbox_status
 from app.routes.sandbox import submit_url_sandbox
@@ -64,20 +67,43 @@ def _apply_analysis_result(scan: Scan, analysis) -> None:
         scan.status = "high"
     elif analysis.risk_score >= 30:
         scan.status = "medium"
+    elif getattr(analysis, "source", None) == "message_rules_only":
+        scan.status = "unverified"
     else:
         scan.status = "safe"
 
+
+def _analysis_probability(analysis) -> float | None:
+    # Risk scores are not calibrated probabilities. Message assessments do
+    # not persist a probability or model-reported confidence value.
+    if str(getattr(analysis, "source", "")).startswith("message_"):
+        return None
+    return analysis.risk_score / 100
+
 def _persist_analysis_result(db: AsyncSession, scan: Scan, analysis) -> None:
     _apply_analysis_result(scan, analysis)
+    features = sanitize_analysis_payload(analysis.features)
+    explanation = sanitize_analysis_payload(analysis.explanation)
+    if str(getattr(analysis, "source", "")).startswith("message_"):
+        # Keep only non-content metadata in durable history. Message-specific
+        # excerpts and the full provider explanation are returned once to the
+        # user but are not saved, even when scan history is enabled.
+        explanation = {
+            "engine": analysis.source,
+            "analysis_source": analysis.features.get("analysis_source"),
+            "provider_status": analysis.features.get("provider_status"),
+            "score_mapping": analysis.explanation.get("score_mapping"),
+            "summary": "Message assessment metadata retained; message text and evidence excerpts are not stored.",
+        }
     db.add(
         AnalysisResult(
             scan_id=scan.id,
             model_name=analysis.model_name,
             model_version=analysis.model_version,
             prediction=analysis.prediction,
-            probability=analysis.risk_score / 100,
-            features=sanitize_analysis_payload(analysis.features),
-            explanation=sanitize_analysis_payload(analysis.explanation),
+            probability=_analysis_probability(analysis),
+            features=features,
+            explanation=explanation,
         )
     )
 
@@ -142,7 +168,7 @@ async def _finish_scan(db: AsyncSession, user: User, input_type: str, preview: s
             model_name=analysis.model_name,
             model_version=analysis.model_version,
             prediction=analysis.prediction,
-            probability=analysis.risk_score / 100,
+            probability=_analysis_probability(analysis),
             features=sanitize_analysis_payload(analysis.features),
             explanation=sanitize_analysis_payload(analysis.explanation),
             created_at=now,
@@ -170,12 +196,45 @@ async def create_message_scan(
     payload: MessageScanRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> Scan | ScanResponse:
+) -> ScanResponse:
     message = payload.message.strip()
-
-    analysis = analyze_message(message)
-
-    return await _finish_scan(db, current_user, "message", safe_scan_preview("message"), analysis)
+    rules = analyze_message(message)
+    provider = await classify_message(message, str(current_user.id))
+    analysis, assessment = combine_message_assessment(message, rules, provider)
+    scan = await _finish_scan(db, current_user, "message", safe_scan_preview("message"), analysis)
+    scan_id = scan.id
+    created_at = scan.created_at or datetime.now(timezone.utc)
+    return ScanResponse(
+        id=scan_id,
+        input_type="message",
+        status=scan.status,
+        risk_score=scan.risk_score,
+        confidence=None,
+        threat_type=scan.threat_type,
+        redacted_preview=safe_scan_preview("message"),
+        created_at=created_at,
+        analysis=AnalysisResultResponse(
+            id=uuid4(),
+            model_name=analysis.model_name,
+            model_version=analysis.model_version,
+            prediction=analysis.prediction,
+            probability=None,
+            features=sanitize_analysis_payload(analysis.features),
+            explanation=sanitize_analysis_payload(analysis.explanation),
+            created_at=created_at,
+        ),
+        indicators=[
+            ThreatIndicatorResponse(
+                id=uuid4(),
+                indicator_type=signal.indicator_type,
+                description=safe_indicator_description(signal.indicator_type),
+                severity=signal.severity,
+                evidence=sanitize_analysis_payload(signal.evidence),
+            )
+            for signal in analysis.signals
+        ],
+        message_assessment=assessment,
+    )
 
 
 @router.post(

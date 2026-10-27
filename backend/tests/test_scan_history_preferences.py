@@ -15,6 +15,7 @@ from starlette.datastructures import UploadFile
 from app.db.models import AnalysisResult, AuditLog, Scan, ThreatIndicator, User, UserNotification
 from app.routes import scans
 from app.schemas.scans import MessageScanRequest, QRScanRequest, URLScanRequest
+from app.services.openrouter_messages import ProviderResult
 
 
 class ScanPreferenceFakeDB:
@@ -63,8 +64,16 @@ class ScanHistoryPreferenceTests(unittest.TestCase):
 
     def test_all_four_scanners_return_results_without_persisting_history(self):
         async def scenario():
+            message_db = ScanPreferenceFakeDB(enabled=False)
+            with patch.object(scans, "classify_message", new=AsyncMock(return_value=ProviderResult(None, "not_configured"))):
+                message_result = await scans.create_message_scan(MessageScanRequest(message="private message"), self.user, message_db)
+            self.assertEqual(message_result.input_type, "message")
+            self.assertEqual(message_result.status, "unverified")
+            self.assertEqual(message_result.message_assessment.provider_status, "not_configured")
+            self.assertEqual(message_db.commits, 1)
+            self.assertFalse(any(isinstance(row, (Scan, AnalysisResult, ThreatIndicator, AuditLog, UserNotification)) for row in message_db.added))
+
             cases = [
-                ("message", lambda db, analysis: scans.create_message_scan(MessageScanRequest(message="private message"), self.user, db), "analyze_message"),
                 ("url", lambda db, analysis: scans.create_url_scan(URLScanRequest(url="https://example.test/private"), self.user, db), "analyze_url"),
                 ("qr", lambda db, analysis: scans.create_qr_scan(QRScanRequest(payload="qr text"), self.user, db), "analyze_message"),
             ]
@@ -99,9 +108,10 @@ class ScanHistoryPreferenceTests(unittest.TestCase):
     def test_history_enabled_still_persists_analysis_for_existing_behavior(self):
         async def scenario():
             db = ScanPreferenceFakeDB(enabled=True)
-            with patch.object(scans, "analyze_message", return_value=make_analysis()):
+            with patch.object(scans, "classify_message", new=AsyncMock(return_value=ProviderResult(None, "not_configured"))):
                 result = await scans.create_message_scan(MessageScanRequest(message="ordinary test"), self.user, db)
-            self.assertEqual(result.status, "safe")
+            self.assertEqual(result.status, "unverified")
+            self.assertEqual(result.message_assessment.verdict, "unverified")
             self.assertTrue(any(isinstance(row, Scan) for row in db.added))
             self.assertTrue(any(isinstance(row, AnalysisResult) for row in db.added))
             self.assertEqual(db.commits, 1)

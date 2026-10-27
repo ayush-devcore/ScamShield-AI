@@ -115,3 +115,26 @@ Use [the separate Render migration and dataset import runbook](docs/RENDER_DATAS
 ## Scope notes
 
 The backend provides the scan and account APIs used by the frontend; `/docs` lists the routes available in the running application. Configuration includes optional external-service API key settings, but this local setup does not configure or claim any external threat-intelligence integration. The setup steps above cover local development only, not production deployment.
+
+## Message fraud analysis with OpenRouter
+
+Message scans combine the deterministic rules with the configurable OpenRouter model `google/gemini-3.1-flash-lite`. The backend sends only the submitted message text to the OpenRouter Chat Completions API. It requests strict JSON Schema output, routes only to endpoints that support the request parameters, and asks OpenRouter to deny endpoints that collect user data. Responses are still validated and evidence excerpts must be exact substrings from the submitted message. Rule findings can raise an AI score but cannot be lowered by it.
+
+Risk score mapping is consistent across the response and UI: `0–29` is low/safe only after a valid AI assessment; `30–59` is suspicious; `60–100` is high risk. If the key is missing, the provider fails, a request budget is reached, or an assessment fails validation, deterministic rules still run. A rules-only score below 30 is `unverified`, never a verified-safe result. Message confidence is not shown as a percentage because the score and model output are not calibrated probabilities.
+
+Configure `OPENROUTER_API_KEY` only in the backend environment. For Render, add it as a secret environment variable on the backend service (or its private environment group); never use `VITE_OPENROUTER_API_KEY` or any frontend variable. The root `.env.example` contains a placeholder and the actual local `.env` is ignored. The default request budget allows 5 requests per user per hour, 20 per user per day, 500 across the deployment per day, and 8 in-flight model calls. Adjust the corresponding `OPENROUTER_*` server-side settings deliberately. No request cache is used.
+
+The user sees a just-in-time notice and must acknowledge that their message may be sent to OpenRouter and its selected model provider. OpenRouter's [support information](https://openrouter.ai/support) says it records basic request metadata and does not log prompts or completions by default; workspace privacy settings can change that. OpenRouter's [privacy policy](https://openrouter.ai/privacy) says inputs are transmitted to routed model providers and provider retention/training practices differ. The request's `data_collection: deny` preference excludes providers identified by OpenRouter as collecting user data; it does not prevent OpenRouter from receiving the request or remove operational metadata. ScamShield does not save the original message or quoted evidence excerpts. With scan history enabled, it saves score, indicator types, source/status, model metadata, and a generic summary under the existing retention preference.
+
+The model ID and structured-output support are confirmed in OpenRouter's [Gemini 3.1 Flash Lite listing](https://openrouter.ai/google/gemini-3.1-flash-lite/api) and [structured-output guide](https://openrouter.ai/docs/guides/features/structured-outputs). OpenRouter notes support is provider-endpoint-specific; requests set `require_parameters: true`, and unsupported routing falls back to rules-only analysis.
+
+Run the deterministic evaluation on the included synthetic 20-message set without network access:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m scripts.evaluate_message_ai --rules-only
+```
+
+The opt-in `--live` mode sends up to 20 evaluation messages to OpenRouter and can incur provider charges. The ordinary backend suite mocks the API. A one-request live smoke test is also available by setting `RUN_OPENROUTER_INTEGRATION=1` in the test process while a backend key and Redis are configured.
+
+The observed local baseline/live metrics and benchmark limitations are recorded in [the message AI evaluation snapshot](docs/MESSAGE_AI_EVALUATION.md).

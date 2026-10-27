@@ -16,7 +16,7 @@ class ThreatSignal:
 @dataclass(frozen=True)
 class RiskAnalysis:
     risk_score: int
-    confidence: float
+    confidence: float | None
     threat_type: str
     prediction: str
     signals: list[ThreatSignal]
@@ -36,7 +36,24 @@ URGENCY_PATTERNS = [
     r"\basap\b",
     r"\bwithin\s+\d+\s*(?:minutes?|hours?)\b",
     r"\blast\s+warning\b",
+    r"\binstantly\b",
+    r"\bexpires?\s+(?:today|soon|in\s+\d+)\b",
 ]
+
+REWARD_PATTERNS = [
+    r"\b(?:win|won|winner|prize|giveaway|lottery|reward|bonus|cashback|refund|claim your|selected for)\b",
+]
+
+CALL_TO_ACTION_PATTERNS = [
+    r"\b(?:click|tap|open|follow|visit)\b.{0,60}\b(?:link|below|here|claim|collect|redeem|now|reward|prize)\b",
+    r"\b(?:click|tap)\s+(?:here|below)\b",
+    r"\b(?:claim|collect|redeem)\b.{0,45}\b(?:prize|reward|cash|refund|bonus|offer)\b",
+]
+
+CASH_REWARD_PATTERN = re.compile(
+    r"(?:[$₹€£]\s?\d|\b\d[\d,.]*\s?(?:usd|dollars?|inr|rupees?|rs\.?)\b|\b\d[\d,]*\s?[$₹])",
+    re.IGNORECASE,
+)
 
 ACCOUNT_PATTERNS = [
     r"\baccount\b",
@@ -623,6 +640,9 @@ def analyze_message(message: str) -> RiskAnalysis:
         IMPERSONATION_PATTERNS,
     )
     urls = _extract_urls(text)
+    reward_count = _count_matches(text, REWARD_PATTERNS)
+    call_to_action_count = _count_matches(text, CALL_TO_ACTION_PATTERNS)
+    cash_reward = bool(CASH_REWARD_PATTERN.search(text))
 
     signals: list[ThreatSignal] = []
 
@@ -716,6 +736,36 @@ def analyze_message(message: str) -> RiskAnalysis:
             )
         )
 
+    if reward_count:
+        signals.append(
+            ThreatSignal(
+                indicator_type="prize_bait",
+                description="The message refers to a prize, giveaway, lottery, refund, or reward.",
+                severity="medium",
+                evidence={"matches": reward_count},
+            )
+        )
+
+    if call_to_action_count:
+        signals.append(
+            ThreatSignal(
+                indicator_type="call_to_action",
+                description="The message urges the recipient to click, follow, open, claim, or redeem.",
+                severity="high",
+                evidence={"matches": call_to_action_count, "url_present": bool(urls)},
+            )
+        )
+
+    if reward_count and call_to_action_count and cash_reward:
+        signals.append(
+            ThreatSignal(
+                indicator_type="cash_prize_click_combination",
+                description="A promised cash reward is paired with an instruction to take action.",
+                severity="critical",
+                evidence={"reward_present": True, "call_to_action_present": True, "url_present": bool(urls)},
+            )
+        )
+
     # ---------------------------------------------------------
     # Baseline scoring
     # ---------------------------------------------------------
@@ -727,6 +777,15 @@ def analyze_message(message: str) -> RiskAnalysis:
     score += min(15, financial_count * 5)
     score += min(15, impersonation_count * 5)
     score += min(15, len(urls) * 10)
+
+    if reward_count:
+        score += 15
+    if call_to_action_count:
+        score += 15
+    if reward_count and call_to_action_count:
+        score += 20
+    if reward_count and cash_reward:
+        score += 10
 
     # Strong combinations increase risk.
     if urgency_count and account_count:
@@ -770,6 +829,9 @@ def analyze_message(message: str) -> RiskAnalysis:
         "financial_matches": financial_count,
         "impersonation_matches": impersonation_count,
         "url_count": len(urls),
+        "reward_matches": reward_count,
+        "call_to_action_matches": call_to_action_count,
+        "cash_reward_present": cash_reward,
         "signal_count": len(signals),
     }
 
