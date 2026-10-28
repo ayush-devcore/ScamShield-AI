@@ -28,7 +28,7 @@ export default function UrlScanner() {
     try {
       const result = await createUrlDecision(trimmedUrl);
       if (result.outcome === "sandbox_queued" && result.sandbox_job) {
-        navigate("/sandbox", { state: { initialJob: result.sandbox_job } });
+        navigate("/sandbox", { state: { initialJob: result.sandbox_job, datasetLookup: result.dataset_lookup } });
       } else if (result.scan) {
         navigate(`/threat/${result.scan.id}`, { state: { inlineScan: result.scan, urlDecision: result } });
       } else {

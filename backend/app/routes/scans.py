@@ -268,7 +268,7 @@ async def create_url_scan(
 
 
 def _dataset_lookup_response(lookup: DatasetLookup) -> UrlDatasetLookupResponse:
-    if lookup.status != "known_malicious":
+    if lookup.status not in {"known_malicious", "non_malicious_label"}:
         return UrlDatasetLookupResponse(status=lookup.status)
     return UrlDatasetLookupResponse(
         status=lookup.status,
@@ -481,8 +481,10 @@ async def decide_url_analysis(
                     risk_assessment=_static_risk(
                         static_analysis,
                         method="local static URL heuristics",
-                        explanation="No malicious dataset entry matched. Scan history is disabled, so a durable isolated-browser job cannot be queued.",
-                        limitations=["Static heuristics cannot establish that an unmatched URL is safe.", "No browser navigation occurred."],
+                        explanation=("No malicious dataset entry matched. A benign dataset label does not verify that the destination is safe. Scan history is disabled, so a durable isolated-browser job cannot be queued."
+                                     if dataset_lookup.status == "non_malicious_label"
+                                     else "No malicious dataset entry matched. Scan history is disabled, so a durable isolated-browser job cannot be queued."),
+                        limitations=["Static heuristics cannot establish that a destination is safe.", "No browser navigation occurred."],
                     ),
                     reachability="unknown",
                     reason="history_persistence_disabled",
@@ -497,7 +499,9 @@ async def decide_url_analysis(
         risk_assessment=_static_risk(
             static_analysis,
             method="local static URL heuristics",
-            explanation="No malicious dataset entry matched. The isolated browser runtime is unavailable, so this result is unverified.",
+            explanation=("No malicious dataset entry matched. The dataset label is benign, but it does not verify that the destination is safe. The isolated browser runtime is unavailable, so this result is unverified."
+                         if dataset_lookup.status == "non_malicious_label"
+                         else "No confirmed malicious dataset entry matched. The isolated browser runtime is unavailable, so this result is unverified."),
             limitations=["No sandbox navigation or reachability check occurred.", "A low static heuristic score is not a safe verdict."],
         ),
         reachability="runtime_unavailable",

@@ -85,13 +85,38 @@ class UrlDecisionTests(unittest.IsolatedAsyncioTestCase):
         job = SandboxJobResponse(
             id=uuid4(), scan_id=uuid4(), state="queued", created_at=datetime.now(timezone.utc),
         )
-        with patch("app.routes.scans.lookup_url", new=AsyncMock(return_value=DatasetLookup(status="non_malicious_label"))), \
+        lookup = DatasetLookup(
+            status="non_malicious_label", source_label="benign", dataset_name="malicious_phish.csv",
+            dataset_fingerprint="b" * 64, imported_at=datetime.now(timezone.utc), match_type="exact_url",
+        )
+        with patch("app.routes.scans.lookup_url", new=AsyncMock(return_value=lookup)), \
              patch("app.routes.scans.get_sandbox_status", return_value=runtime_status(True)), \
              patch("app.routes.scans.submit_url_sandbox", new=AsyncMock(return_value=job)) as handoff:
             result = await decide_url_analysis(self.request, self.user, self.db)
         self.assertEqual(result.outcome, "sandbox_queued")
         self.assertEqual(result.reachability, "pending")
+        self.assertEqual(result.dataset_lookup.status, "non_malicious_label")
+        self.assertEqual(result.dataset_lookup.source_label, "benign")
+        self.assertEqual(result.dataset_lookup.dataset_name, "malicious_phish.csv")
         handoff.assert_awaited_once()
+
+    async def test_benign_dataset_label_with_unavailable_runtime_stays_unverified(self):
+        lookup = DatasetLookup(
+            status="non_malicious_label", source_label="benign", dataset_name="malicious_phish.csv",
+            dataset_fingerprint="c" * 64, imported_at=datetime.now(timezone.utc), match_type="exact_url",
+        )
+        analysis = SimpleNamespace(
+            risk_score=0, confidence=0.9, threat_type="Low structural risk", prediction="safe",
+            signals=[], features={}, explanation={}, model_name="baseline", model_version="1",
+        )
+        with patch("app.routes.scans.lookup_url", new=AsyncMock(return_value=lookup)), \
+             patch("app.routes.scans.get_sandbox_status", return_value=runtime_status(False)), \
+             patch("app.routes.scans.analyze_url", return_value=analysis), \
+             patch("app.routes.scans._finish_unverified_url", new=AsyncMock(return_value=scan_response("runtime_unavailable"))):
+            result = await decide_url_analysis(self.request, self.user, self.db)
+        self.assertEqual(result.dataset_lookup.source_label, "benign")
+        self.assertEqual(result.risk_assessment.verdict, "unverified")
+        self.assertIn("does not verify", result.risk_assessment.explanation)
 
     async def test_dataset_lookup_failure_returns_no_verdict_and_does_not_fall_through(self):
         with patch("app.routes.scans.lookup_url", new=AsyncMock(side_effect=RuntimeError("database unavailable"))), \

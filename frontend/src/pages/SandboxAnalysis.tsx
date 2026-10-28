@@ -9,6 +9,7 @@ import {
   submitSandboxUrl,
   type SandboxJob,
   type SandboxStatus,
+  type UrlDecisionResponse,
 } from "@/lib/api";
 
 const ACTIVE_STATES = new Set(["queued", "provisioning", "running", "collecting_evidence", "analyzing"]);
@@ -24,7 +25,9 @@ function isActive(state?: string) {
 
 export default function SandboxAnalysis() {
   const location = useLocation();
-  const initialJob = (location.state as { initialJob?: SandboxJob } | null)?.initialJob;
+  const routeState = location.state as { initialJob?: SandboxJob; datasetLookup?: UrlDecisionResponse["dataset_lookup"] } | null;
+  const initialJob = routeState?.initialJob;
+  const datasetLookup = routeState?.datasetLookup;
   const [runtime, setRuntime] = useState<SandboxStatus | null>(null);
   const [jobs, setJobs] = useState<SandboxJob[]>(() => initialJob ? [initialJob] : []);
   const [selected, setSelected] = useState<SandboxJob | null>(initialJob ?? null);
@@ -117,6 +120,8 @@ export default function SandboxAnalysis() {
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
         </button>
       </header>
+
+      {datasetLookup?.status === "non_malicious_label" && <section className="rounded-xl border border-teal-300/20 bg-teal-300/[0.04] p-4" aria-label="URL dataset result"><p className="text-xs font-semibold text-teal-100">Dataset label: {datasetLookup.source_label ?? "benign"}</p><p className="mt-1 text-xs leading-5 text-slate-300">This label is not a safety verdict. The URL is queued for isolated analysis and remains unverified until the sandbox produces a report.</p>{datasetLookup.dataset_name && <p className="mt-2 text-[10px] text-slate-500">Source: {datasetLookup.dataset_name}{datasetLookup.imported_at ? ` · imported ${new Date(datasetLookup.imported_at).toLocaleString()}` : ""}</p>}</section>}
 
       {error && <div role="alert" className="rounded-xl border border-rose-400/25 bg-rose-400/[0.06] p-4 text-sm leading-6 text-rose-100">{error}</div>}
 
