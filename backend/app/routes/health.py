@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,24 +18,9 @@ async def health_check(
 ):
     try:
         result = await db.execute(text("SELECT 1"))
-
-        database_status = "connected"
-
-        return {
-            "service": "ScamShield AI",
-            "status": "healthy",
-            "database": database_status,
-            "database_test": result.scalar_one(),
-        }
-
+        result.scalar_one()
     except Exception as exc:
-        logger.exception(
-            "Database health check failed: %s",
-            type(exc).__name__,
-        )
+        logger.warning("Readiness check failed (%s)", type(exc).__name__)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable.") from None
 
-        return {
-            "service": "ScamShield AI",
-            "status": "degraded",
-            "database": "disconnected",
-        }
+    return {"service": "ScamShield AI", "status": "healthy"}

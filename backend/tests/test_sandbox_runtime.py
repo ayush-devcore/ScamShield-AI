@@ -1,6 +1,7 @@
 import asyncio
 import os
 import unittest
+from unittest.mock import patch
 from uuid import uuid4
 
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
@@ -22,8 +23,9 @@ class SandboxUnavailableTests(unittest.TestCase):
             password_hash="unused", is_active=True,
         )
 
-    def test_capabilities_fail_closed_by_default(self):
-        status = get_sandbox_status()
+    def test_capabilities_are_unavailable_when_runtime_flag_is_disabled(self):
+        with patch("app.services.sandbox_runtime.settings.sandbox_runtime_enabled", False):
+            status = get_sandbox_status()
         self.assertFalse(status.available)
         self.assertEqual(status.status, "runtime_unavailable")
         self.assertEqual(status.reason, "sandbox_runtime_disabled")
@@ -32,9 +34,10 @@ class SandboxUnavailableTests(unittest.TestCase):
         self.assertFalse(status.capabilities.file_static_analysis)
         self.assertFalse(status.capabilities.file_detonation)
 
-    def test_valid_target_is_rejected_when_runtime_not_verified(self):
+    def test_valid_target_is_rejected_when_runtime_flag_is_disabled(self):
         async def run():
-            with self.assertRaises(HTTPException) as raised:
+            with patch("app.services.sandbox_runtime.settings.sandbox_runtime_enabled", False), \
+                 self.assertRaises(HTTPException) as raised:
                 await submit_url_sandbox(
                     SandboxUrlRequest(url="https://example.com/path?token=synthetic"),
                     self.user,
@@ -44,6 +47,13 @@ class SandboxUnavailableTests(unittest.TestCase):
             self.assertNotIn("synthetic", str(raised.exception.detail))
 
         asyncio.run(run())
+
+    def test_runtime_enabled_without_network_verification_remains_unavailable(self):
+        with patch("app.services.sandbox_runtime.settings.sandbox_runtime_enabled", True), \
+             patch("app.services.sandbox_runtime.settings.sandbox_network_verified", False):
+            status = get_sandbox_status()
+        self.assertFalse(status.available)
+        self.assertEqual(status.reason, "network_isolation_not_verified")
 
     def test_valid_public_http_and_https_urls(self):
         for target in ("https://example.com/a?secret=synthetic", "http://example.org:80/", "https://[2606:4700:4700::1111]/"):
