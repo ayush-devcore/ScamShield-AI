@@ -128,7 +128,7 @@ export default function PrivacyToolkit() {
       </section>
 
       {tools.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{tools.map((tool) => <ToolCard key={tool.name} tool={tool} />)}</div>
+        <div className="privacy-tool-grid grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{tools.map((tool, index) => <div className="privacy-tool-reveal" key={tool.name} style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}><ToolCard tool={tool} /></div>)}</div>
       ) : (
         <section className="scam-card rounded-2xl p-10 text-center">
           <Search className="mx-auto h-7 w-7 text-cyan-300" aria-hidden="true" />

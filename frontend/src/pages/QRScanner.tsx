@@ -1,6 +1,6 @@
 import { AlertCircle, ArrowRight, QrCode, ScanLine } from "lucide-react";
 import jsQR from "jsqr";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 import { UploadBox } from "@/components/scanner/UploadBox";
@@ -136,8 +136,10 @@ export default function QRScanner() {
   const [error, setError] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [payload, setPayload] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const navigate = useNavigate();
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
 
   const analyze = async () => {
     const trimmed = payload.trim();
@@ -166,6 +168,7 @@ export default function QRScanner() {
       setError("Please upload a valid image file for the QR code.");
       setPayload("");
       setFileName("");
+      setPreviewUrl("");
       return;
     }
 
@@ -173,10 +176,12 @@ export default function QRScanner() {
       setError("QR image is too large. Please upload an image smaller than 4 MB.");
       setPayload("");
       setFileName("");
+      setPreviewUrl("");
       return;
     }
 
     setFileName(file.name);
+    setPreviewUrl(URL.createObjectURL(file));
     setError("");
     setPayload("");
 
@@ -261,13 +266,21 @@ export default function QRScanner() {
         </p>
       </div>
 
-      <div className="scam-card rounded-2xl p-5 sm:p-6">
+      <div className="qr-workspace grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,.85fr)]">
+      <section className="scam-card rounded-2xl p-5 sm:p-6" aria-label="QR code image">
         <UploadBox
           label={fileName || "Upload a QR code image"}
           accept="image/*"
           onFile={handleFile}
         />
 
+        {previewUrl && <div className="mx-auto mt-4 grid max-h-48 max-w-48 place-items-center overflow-hidden rounded-xl border border-slate-700/70 bg-white p-2"><img src={previewUrl} alt="Selected QR code image" className="max-h-44 max-w-full object-contain" /></div>}
+
+        <div className="mt-5 rounded-xl border border-amber-300/15 bg-amber-300/[0.035] p-3 text-xs leading-5 text-slate-400">Decoding happens in your browser. The destination is shown for review and is never opened automatically.</div>
+      </section>
+
+      <section className="scam-card rounded-2xl p-5 sm:p-6" aria-label="Decoded QR payload">
+        <div className="mb-4"><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-amber-200">Decoded content</p><h2 className="mt-2 text-base font-semibold text-white">Review before analysis</h2><p className="mt-1 text-xs leading-5 text-slate-500">Confirm what the QR image contains before submitting the decoded payload.</p></div>
         <div className="mt-5 rounded-2xl border border-slate-800 bg-[#071014] p-4">
           <label
             htmlFor="qr-payload"
@@ -316,6 +329,7 @@ export default function QRScanner() {
             </>
           )}
         </button>
+      </section>
       </div>
     </div>
   );

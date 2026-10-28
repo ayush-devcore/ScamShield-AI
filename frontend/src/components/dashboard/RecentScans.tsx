@@ -146,16 +146,18 @@ export function RecentScans({ data }: RecentScansProps) {
                   <td className="px-5 py-4">
                     <span
                       className={`text-xs font-semibold ${
-                        (scan.score ?? 0) >= 80
+                        scan.score === null
+                          ? "text-slate-400"
+                          : scan.score >= 80
                           ? "text-red-400"
-                          : (scan.score ?? 0) >= 60
+                          : scan.score >= 60
                             ? "text-orange-400"
-                            : (scan.score ?? 0) >= 30
+                            : scan.score >= 30
                               ? "text-amber-400"
                               : "text-emerald-400"
                       }`}
                     >
-                      {scan.score ?? 0}/100
+                      {scan.score === null ? "Pending" : `${scan.score}/100`}
                     </span>
                   </td>
 

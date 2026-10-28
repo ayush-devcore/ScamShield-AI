@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, ArrowRight, Link2, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowRight, Link2, Database, ScanLine, FlaskConical } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 
 import { createUrlDecision } from "@/lib/api";
@@ -59,7 +59,9 @@ export default function UrlScanner() {
         </p>
       </div>
 
-      <div className="scam-card rounded-2xl p-5 sm:p-6">
+      <div className="url-workspace grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,.7fr)]">
+      <section className="scam-card rounded-2xl p-5 sm:p-6" aria-label="URL analysis form">
+        <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-700/50 pb-4"><div><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-teal-200">Destination assessment</p><h2 className="mt-1 text-sm font-semibold text-white">Inspect a link before opening it</h2></div><span className="rounded-full border border-teal-300/15 bg-teal-300/[0.05] px-2.5 py-1 text-[10px] text-teal-100">No direct navigation</span></div>
         <label className="text-xs font-medium text-slate-400">Destination URL</label>
 
         <div className="mt-3 flex flex-col gap-3 sm:flex-row">
@@ -93,19 +95,18 @@ export default function UrlScanner() {
           </div>
         )}
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+      </section>
+      <aside className="scan-guide rounded-2xl border border-teal-300/15 p-5">
+        <p className="text-[10px] font-semibold uppercase tracking-[.18em] text-teal-200">Assessment path</p><h2 className="mt-2 text-base font-semibold text-white">Evidence is layered</h2>
+        <ol className="url-evidence-steps mt-5 space-y-4">
           {[
-            ["Structure", "Length, subdomains, ports, encoding, host anomalies"],
-            ["Signals", "Suspicious keywords and URL deception patterns"],
-            ["Safety", "No outbound fetch; only safe local structural checks"],
-          ].map(([title, description]) => (
-            <div key={title} className="rounded-xl border border-slate-800/70 bg-slate-950/20 p-4">
-              <ShieldCheck className="h-4 w-4 text-teal-300" />
-              <p className="mt-3 text-xs font-medium text-white">{title}</p>
-              <p className="mt-1 text-[11px] leading-5 text-slate-600">{description}</p>
-            </div>
-          ))}
-        </div>
+            { icon: Database, title: "Known dataset", body: "Exact canonical URL lookup checks imported malicious records." },
+            { icon: ScanLine, title: "URL structure", body: "Unmatched URLs are assessed for suspicious structural signals." },
+            { icon: FlaskConical, title: "Isolated browser", body: "Sandbox evidence is used only when the restricted runtime is verified and the backend queues a job." },
+          ].map(({ icon: Icon, title, body }, index) => <li key={title} className="flex gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-teal-300/15 bg-teal-300/[0.05] text-teal-100"><Icon className="h-4 w-4" /></span><span><span className="block text-xs font-medium text-white">{title}</span><span className="mt-1 block text-[11px] leading-5 text-slate-500">{body}</span></span><span className="ml-auto font-mono text-[9px] text-slate-600">0{index + 1}</span></li>)}
+        </ol>
+        <p className="mt-5 border-t border-slate-700/50 pt-4 text-[11px] leading-5 text-amber-100/80">A low heuristic score does not prove a destination is safe. Results report reachability and verification separately.</p>
+      </aside>
       </div>
     </div>
   );

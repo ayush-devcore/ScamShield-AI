@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, ScanLine, ShieldAlert } from "lucide-react";
+import { ArrowRight, ScanLine, ShieldAlert, BrainCircuit, LockKeyhole, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 
 import { createMessageScan } from "@/lib/api";
@@ -69,7 +69,12 @@ export default function MessageScanner() {
       </div>
 
       {/* Scanner */}
-      <div className="scam-card rounded-2xl p-5 sm:p-6">
+      <div className="message-workspace grid gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(17rem,.7fr)]">
+      <section className="scam-card message-composer rounded-2xl p-5 sm:p-6" aria-label="Message analysis form">
+        <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-700/50 pb-4">
+          <div><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-cyan-200">Text assessment</p><h2 className="mt-1 text-sm font-semibold text-white">Paste a message to inspect</h2></div>
+          <span className="rounded-full border border-slate-700/80 bg-slate-950/30 px-2.5 py-1 text-[10px] text-slate-400">Up to 10,000 characters</span>
+        </div>
         <label
           htmlFor="message-input"
           className="text-xs font-medium text-slate-400"
@@ -158,11 +163,17 @@ export default function MessageScanner() {
         {analyzing && <p className="mt-4 flex items-center gap-2 text-xs text-cyan-200" role="status" aria-live="polite"><ScanLine className="h-4 w-4 animate-pulse" />Running deterministic rules and requesting a bounded AI assessment when available…</p>}
 
         {/* Privacy note */}
-        <div className="mt-5 rounded-xl border border-slate-800/60 bg-slate-950/20 px-4 py-3">
-          <p className="text-[11px] leading-5 text-slate-600">
-            ScamShield sends only the submitted message text to the external AI service; account details and profile data are not sent. Provider retention and training practices vary by the OpenRouter settings and routed provider. ScamShield does not save the original message or evidence excerpts. If scan history is enabled, it saves the score, source/status, indicator types, and privacy-minimized analysis metadata. See the <a className="text-cyan-300 underline" href="https://openrouter.ai/privacy" target="_blank" rel="noreferrer">OpenRouter privacy policy</a> and <a className="text-cyan-300 underline" href="https://openrouter.ai/docs/guides/features/structured-outputs" target="_blank" rel="noreferrer">structured-output documentation</a>.
-          </p>
+      </section>
+      <aside className="scan-guide rounded-2xl border border-cyan-300/15 p-5">
+        <div className="grid h-10 w-10 place-items-center rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] text-cyan-100"><BrainCircuit className="h-5 w-5" /></div>
+        <h2 className="mt-4 text-base font-semibold text-white">How analysis works</h2>
+        <div className="mt-4 space-y-3">
+          <div className="rounded-xl border border-slate-700/60 bg-slate-950/20 p-3"><p className="flex items-center gap-2 text-xs font-medium text-slate-200"><ShieldAlert className="h-3.5 w-3.5 text-cyan-200"/> Deterministic rules</p><p className="mt-1.5 text-[11px] leading-5 text-slate-500">Rule-based indicators are evaluated for each submission.</p></div>
+          <div className="rounded-xl border border-slate-700/60 bg-slate-950/20 p-3"><p className="flex items-center gap-2 text-xs font-medium text-slate-200"><Sparkles className="h-3.5 w-3.5 text-lime-200"/> Optional AI assessment</p><p className="mt-1.5 text-[11px] leading-5 text-slate-500">When configured, OpenRouter returns a bounded assessment. Provider status appears with the result.</p></div>
+          <div className="rounded-xl border border-slate-700/60 bg-slate-950/20 p-3"><p className="flex items-center gap-2 text-xs font-medium text-slate-200"><LockKeyhole className="h-3.5 w-3.5 text-teal-200"/> Privacy boundary</p><p className="mt-1.5 text-[11px] leading-5 text-slate-500">Only submitted text is sent for external AI analysis. Remove sensitive content first.</p></div>
         </div>
+        <p className="mt-4 border-t border-slate-700/50 pt-4 text-[11px] leading-5 text-slate-500">Provider retention and training practices depend on OpenRouter settings and the routed provider. ScamShield does not store the original message or evidence excerpts. <a className="text-cyan-200 underline" href="https://openrouter.ai/privacy" target="_blank" rel="noreferrer">OpenRouter privacy</a></p>
+      </aside>
       </div>
     </div>
   );

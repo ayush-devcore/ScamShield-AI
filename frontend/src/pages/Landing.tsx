@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Link2, QrCode, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, Link2, QrCode, ShieldCheck, ScanLine, LockKeyhole, Activity } from "lucide-react";
 import { Link } from "react-router";
 
 const features = [
@@ -65,44 +65,31 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="scam-card relative overflow-hidden rounded-3xl p-5 sm:p-7">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.08),transparent_50%)]" />
+        <div className="product-preview relative overflow-hidden rounded-[1.75rem] p-5 sm:p-7">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_10%,rgba(34,211,238,0.1),transparent_50%)]" />
           <div className="relative">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.18em] text-slate-600">Live analysis</p>
-                <p className="mt-1 text-sm font-semibold text-white">Suspicious message</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Inside the workspace</p>
+                <p className="mt-1 text-sm font-semibold text-white">A clearer way to assess risk</p>
               </div>
-              <div className="flex items-center gap-2 text-[10px] text-emerald-300"><span className="cyber-pulse h-1.5 w-1.5 rounded-full bg-emerald-300" /> Engine online</div>
+              <div className="flex items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/[0.06] px-2.5 py-1.5 text-[10px] text-cyan-200"><ShieldCheck className="h-3.5 w-3.5" /> Explainable</div>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-slate-800 bg-[#081014]/80 p-4">
-              <p className="text-xs leading-5 text-slate-300">
-                "Your account will be blocked today. Complete KYC immediately using the verification link below."
-              </p>
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-800">
-                <div className="h-full w-[92%] rounded-full bg-cyan-300" />
-              </div>
-              <div className="mt-2 flex justify-between text-[10px] text-slate-600">
-                <span>Signal fusion</span>
-                <span>92%</span>
-              </div>
+            <div className="preview-flow mt-7 space-y-3">
+              {[
+                { icon: ScanLine, title: "Choose what to inspect", detail: "Messages · URLs · QR codes · screenshots", tone: "cyan" },
+                { icon: Activity, title: "Review the evidence", detail: "See the signals behind each assessment", tone: "lime" },
+                { icon: LockKeyhole, title: "Decide with context", detail: "Understand limits before taking action", tone: "slate" },
+              ].map(({ icon: Icon, title, detail, tone }, index) => (
+                <div key={title} className="preview-step flex items-center gap-4 rounded-2xl border border-white/[0.07] bg-slate-950/30 p-4" style={{ animationDelay: `${index * 110}ms` }}>
+                  <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${tone === "lime" ? "bg-lime-300/[0.09] text-lime-200" : tone === "cyan" ? "bg-cyan-300/[0.09] text-cyan-200" : "bg-white/[0.05] text-slate-300"}`}><Icon className="h-4 w-4" /></div>
+                  <div className="min-w-0 flex-1"><p className="text-sm font-medium text-white">{title}</p><p className="mt-1 text-xs text-slate-500">{detail}</p></div>
+                  <span className="font-mono text-[10px] text-slate-600">0{index + 1}</span>
+                </div>
+              ))}
             </div>
-
-            <div className="mt-5 grid grid-cols-3 gap-3">
-              <div className="rounded-xl border border-red-400/10 bg-red-400/[0.04] p-3">
-                <p className="text-2xl font-semibold text-red-300">94</p>
-                <p className="mt-1 text-[10px] text-slate-600">Risk score</p>
-              </div>
-              <div className="rounded-xl border border-cyan-400/10 bg-cyan-400/[0.03] p-3">
-                <p className="text-2xl font-semibold text-cyan-300">4</p>
-                <p className="mt-1 text-[10px] text-slate-600">Indicators</p>
-              </div>
-              <div className="rounded-xl border border-slate-800 bg-slate-950/20 p-3">
-                <p className="text-2xl font-semibold text-white">96%</p>
-                <p className="mt-1 text-[10px] text-slate-600">Confidence</p>
-              </div>
-            </div>
+            <p className="mt-4 border-t border-white/[0.06] pt-4 text-[11px] leading-5 text-slate-500">Assessments are signals to support your judgment. ScamShield does not guarantee that a link or message is safe.</p>
           </div>
         </div>
       </section>
@@ -117,13 +104,19 @@ export default function Landing() {
           ].map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.title} className="scam-card rounded-2xl p-5">
+              <div key={item.title} className="landing-feature scam-card rounded-2xl p-5">
                 <Icon className="h-5 w-5 text-cyan-300" />
                 <h3 className="mt-5 text-sm font-semibold text-white">{item.title}</h3>
                 <p className="mt-2 text-xs leading-5 text-slate-500">{item.text}</p>
               </div>
             );
           })}
+        </div>
+      </section>
+      <section className="relative z-10 mx-auto max-w-7xl px-5 pb-24 sm:px-8">
+        <div className="trust-band flex flex-col gap-5 rounded-3xl border border-white/[0.07] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-lime-200">Built for careful decisions</p><h2 className="mt-2 text-xl font-semibold tracking-tight text-white sm:text-2xl">Know what was checked.<br className="hidden sm:block" /> Know what still needs your judgment.</h2></div>
+          <Link to="/register" className="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-lime-300 px-5 py-3 text-sm font-semibold text-[#09120d] transition hover:bg-lime-200 sm:self-center">Get started <ArrowRight className="h-4 w-4" /></Link>
         </div>
       </section>
     </main>

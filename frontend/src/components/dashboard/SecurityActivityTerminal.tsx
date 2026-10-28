@@ -23,7 +23,7 @@ export function SecurityActivityTerminal({
     <section className="overflow-hidden rounded-2xl border border-cyan-400/15 bg-[#091420] shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
       <div className="flex items-center justify-between border-b border-slate-700/60 bg-[#101f30] px-5 py-4">
         <div className="flex items-center gap-2"><Terminal className="h-4 w-4 text-cyan-300" /><h2 className="text-sm font-semibold text-slate-100">Security Activity Terminal</h2></div>
-        <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-teal-300"><CircleDot className="h-3 w-3" /> Live records</span>
+        <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-teal-300"><CircleDot className="h-3 w-3" /> Account activity</span>
       </div>
       <div className="min-h-48 p-4 font-mono text-xs">
         {loading ? <p className="text-slate-400">Loading your authorized activity…</p> : error ? (

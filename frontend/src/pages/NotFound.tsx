@@ -3,8 +3,8 @@ import { ShieldAlert } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#05090c] px-5 text-center text-white">
-      <div>
+    <main className="not-found-shell flex min-h-screen items-center justify-center bg-[#05090c] px-5 text-center text-white">
+      <div className="not-found-panel">
         <ShieldAlert className="mx-auto h-10 w-10 text-red-300" />
         <p className="mt-5 text-xs uppercase tracking-[0.18em] text-slate-600">404</p>
         <h1 className="mt-2 text-3xl font-semibold">Page not found</h1>

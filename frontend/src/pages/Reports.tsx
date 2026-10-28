@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { Download, ChartNoAxesCombined, Activity } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getReports, type ReportSummary } from "@/lib/api";
@@ -148,9 +148,9 @@ export default function Reports() {
         </div>
       ) : (
         <>
-          <section className="scam-card rounded-2xl p-5">
-            <p className="text-[10px] uppercase tracking-wider text-slate-600">Total scans</p>
-            <p className="mt-2 text-3xl font-semibold text-white">{report.total_scans}</p>
+          <section className="report-overview grid gap-4 md:grid-cols-[1.1fr_1.9fr]">
+            <div className="report-total relative overflow-hidden rounded-2xl border border-cyan-300/20 p-6 sm:p-7"><div className="pointer-events-none absolute -right-8 -top-10 h-48 w-48 rounded-full border border-cyan-200/10"/><div className="pointer-events-none absolute -right-1 -top-3 h-32 w-32 rounded-full border border-cyan-200/10"/><p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.18em] text-cyan-200"><ChartNoAxesCombined className="h-4 w-4"/> Recorded volume</p><p className="mt-4 text-5xl font-semibold tracking-tight text-white">{report.total_scans.toLocaleString()}</p><p className="mt-2 text-xs text-slate-400">Scans in your account history</p></div>
+            <div className="scam-card rounded-2xl p-5"><div className="flex items-start justify-between"><div><h2 className="text-sm font-semibold text-white">Recent activity</h2><p className="mt-1 text-xs text-slate-500">Daily scan counts returned by your report</p></div><Activity className="h-4 w-4 text-teal-200"/></div><div className="report-trend mt-5 grid min-h-28 grid-cols-7 items-end gap-2 sm:gap-4">{report.recent_trends.map(({ day, scans }, index) => { const peak = Math.max(1, ...report.recent_trends.map((item) => item.scans)); const height = scans === 0 ? 0 : Math.max(8, scans / peak * 100); return <div key={day} className="flex h-full min-w-0 flex-col items-center justify-end gap-2"><span className="font-mono text-[10px] text-slate-400">{scans}</span><div className="flex h-16 w-full items-end"><div className="report-bar w-full rounded-t-md bg-gradient-to-t from-teal-500/35 to-cyan-300/80" style={{ height: `${height}%`, animationDelay: `${index * 60}ms` }} /></div><span className="max-w-full truncate text-[9px] text-slate-500">{day}</span></div>; })}</div></div>
           </section>
 
           <div className="grid gap-4 md:grid-cols-3">
@@ -158,18 +158,6 @@ export default function Reports() {
             <Distribution title="Scan types" items={report.scan_type_distribution} />
             <Distribution title="Threat classifications" items={report.threat_type_distribution} />
           </div>
-
-          <section className="scam-card rounded-2xl p-5">
-            <h2 className="text-sm font-semibold text-white">Recent scan activity</h2>
-            <div className="mt-4 grid grid-cols-7 gap-2">
-              {report.recent_trends.map(({ day, scans }) => (
-                <div key={day} className="rounded-lg border border-slate-800/70 p-3 text-center">
-                  <p className="text-[10px] text-slate-500">{day}</p>
-                  <p className="mt-1 text-sm font-semibold text-cyan-300">{scans}</p>
-                </div>
-              ))}
-            </div>
-          </section>
 
           <section className="scam-card overflow-hidden rounded-2xl">
             <h2 className="border-b border-slate-800/60 p-5 text-sm font-semibold text-white">Latest scans</h2>

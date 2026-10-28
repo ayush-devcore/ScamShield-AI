@@ -30,12 +30,12 @@ export function ThreatActivity({ data }: ThreatActivityProps) {
           </p>
         </div>
 
-        <button className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-[11px] text-slate-400 transition hover:border-cyan-400/15 hover:text-white">
+        <span className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-[11px] text-slate-400">
           Last 7 days
-        </button>
+        </span>
       </div>
 
-      <div className="h-[260px] w-full">
+      {data.length === 0 ? <div className="chart-empty grid h-[260px] place-items-center rounded-xl border border-dashed border-slate-700/70 text-center"><div><p className="text-sm text-slate-300">No timeline data yet</p><p className="mt-1 text-xs text-slate-500">Activity appears after scans are recorded.</p></div></div> : <div className="h-[260px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
@@ -102,7 +102,7 @@ export function ThreatActivity({ data }: ThreatActivityProps) {
             />
           </AreaChart>
         </ResponsiveContainer>
-      </div>
+      </div>}
     </div>
   );
 }

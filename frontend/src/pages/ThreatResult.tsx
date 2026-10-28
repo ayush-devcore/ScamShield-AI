@@ -141,7 +141,7 @@ export default function ThreatResult() {
   }
 
   const status = scan.status;
-  const score = scan.risk_score ?? 0;
+  const score = scan.risk_score;
   const riskLabel = getRiskLabel(scan.risk_score, scan.status);
   const messageAssessment = inlineScan?.id === scan.id ? inlineScan.message_assessment : null;
   const storedExplanation = scan.analysis?.explanation;
@@ -188,8 +188,8 @@ export default function ThreatResult() {
           <div className="rounded-xl border border-slate-700/70 bg-slate-950/30 p-3 text-xs text-slate-300">
             <p className="text-[10px] uppercase tracking-wide text-slate-500">Dataset match</p>
             <p className="mt-1">{urlDecision.dataset_lookup.status.replaceAll("_", " ")}</p>
+            {urlDecision.dataset_lookup.source_label && <p className="mt-1">Dataset label: {urlDecision.dataset_lookup.source_label}</p>}
             {urlDecision.dataset_lookup.status === "known_malicious" && <>
-              <p className="mt-1">Label: {urlDecision.dataset_lookup.source_label}</p>
               <p>Match type: {urlDecision.dataset_lookup.match_type?.replaceAll("_", " ") || "exact URL"}</p>
               <p>Source: {urlDecision.dataset_lookup.record_source || urlDecision.dataset_lookup.dataset_name}</p>
               {urlDecision.dataset_lookup.imported_at && <p>Imported: {formatDate(urlDecision.dataset_lookup.imported_at)}</p>}
@@ -199,9 +199,12 @@ export default function ThreatResult() {
           <div className="rounded-xl border border-slate-700/70 bg-slate-950/30 p-3 text-xs text-slate-300">
             <p className="text-[10px] uppercase tracking-wide text-slate-500">Website reachability</p>
             <p className="mt-1">{urlDecision.reachability.replaceAll("_", " ")}</p>
+            <p className="mt-2 text-slate-400">Decision path: {urlDecision.outcome.replaceAll("_", " ")}</p>
+            {urlDecision.risk_assessment?.method && <p className="mt-1 text-slate-400">Assessment method: {urlDecision.risk_assessment.method.replaceAll("_", " ")}</p>}
             {urlDecision.reason && <p className="mt-1 text-slate-400">Reason: {urlDecision.reason.replaceAll("_", " ")}</p>}
           </div>
         </div>
+        {urlDecision.risk_assessment?.indicators.length ? <div className="mt-4"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Assessment indicators</p><ul className="mt-2 flex flex-wrap gap-2">{urlDecision.risk_assessment.indicators.map((item) => <li key={item} className="rounded-lg border border-amber-300/15 bg-amber-300/[0.04] px-3 py-2 text-xs text-amber-100">{item.replaceAll("_", " ")}</li>)}</ul></div> : null}
         {urlDecision.risk_assessment?.limitations?.length ? <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-slate-400">{urlDecision.risk_assessment.limitations.map((item) => <li key={item}>{item}</li>)}</ul> : null}
       </section>}
 
@@ -224,7 +227,7 @@ export default function ThreatResult() {
       </section>}
 
       <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="scam-card risk-pulse rounded-2xl p-5 sm:p-6">
+        <div className={`scam-card rounded-2xl p-5 sm:p-6 ${scan.risk_score !== null && scan.risk_score >= 60 ? "risk-pulse" : ""}`}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] uppercase tracking-[0.18em] text-slate-600">

@@ -90,7 +90,7 @@ export default function History() {
         <p className="mt-2 text-sm text-slate-500">Review previous analyses and their risk assessments.</p>
       </div>
 
-      <div className="scam-card overflow-hidden rounded-2xl">
+      <div className="history-workspace scam-card overflow-hidden rounded-2xl">
         <div className="flex flex-col gap-3 border-b border-slate-800/60 p-4 sm:flex-row">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
@@ -110,6 +110,11 @@ export default function History() {
           >
             <Filter className="h-3.5 w-3.5" /> Filters
           </button>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/50 bg-slate-950/10 px-4 py-3" aria-live="polite">
+          <p className="text-xs text-slate-300">{loading ? "Loading saved assessments…" : error ? "History unavailable" : `${filteredScans.length} shown`}<span className="text-slate-500">{!loading && !error ? ` of ${scans.length} saved scans` : ""}</span></p>
+          {!loading && !error && scans.length > 0 && <p className="text-[10px] text-slate-500">Original message text is not shown in this table.</p>}
         </div>
 
         {filtersOpen && (
@@ -186,7 +191,7 @@ export default function History() {
                       <p className="mt-1 text-[10px] text-slate-700">{scan.id}</p>
                     </td>
                     <td className="px-5 py-4 text-xs text-slate-500">{scan.input_type}</td>
-                    <td className="px-5 py-4 text-xs font-semibold text-white">{scan.risk_score ?? 0}/100</td>
+                    <td className={`px-5 py-4 text-xs font-semibold ${scan.risk_score === null ? "text-slate-500" : "text-white"}`}>{scan.risk_score === null ? "Pending" : `${scan.risk_score}/100`}</td>
                     <td className="px-5 py-4 text-xs text-slate-500">{scan.input_type === "message" ? "Not calibrated" : scan.confidence !== null ? `${scan.confidence}%` : "—"}</td>
                     <td className="px-5 py-4"><StatusBadge status={scan.status} /></td>
                     <td className="px-5 py-4 text-[11px] text-slate-600">{formatDate(scan.created_at)}</td>

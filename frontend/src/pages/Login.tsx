@@ -61,8 +61,8 @@ export default function Login() {
   }
 
   return (
-    <main className="grid min-h-screen bg-[#05090c] text-white lg:grid-cols-2">
-      <section className="relative hidden overflow-hidden border-r border-cyan-400/[0.07] lg:block">
+    <main className="auth-shell grid min-h-screen bg-[#05090c] text-white lg:grid-cols-2">
+      <section className="auth-aside relative hidden overflow-hidden border-r border-cyan-400/[0.07] lg:block">
         <div className="absolute inset-0 grid-bg" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_45%_50%,rgba(34,211,238,0.12),transparent_38%)]" />
 
@@ -80,12 +80,13 @@ export default function Login() {
               AI-assisted risk assessment for suspicious messages, URLs, QR
               codes and screenshots.
             </p>
+            <div className="auth-capabilities mt-8 grid gap-3 text-left">{[["01", "Inspect suspicious content"], ["02", "Review explainable signals"], ["03", "Choose your next step"]].map(([number, text]) => <div key={number} className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-slate-950/25 px-4 py-3"><span className="font-mono text-[10px] text-cyan-200">{number}</span><span className="text-xs text-slate-300">{text}</span></div>)}</div>
           </div>
         </div>
       </section>
 
-      <section className="flex items-center justify-center px-5 py-10">
-        <div className="w-full max-w-md">
+      <section className="auth-main flex items-center justify-center px-5 py-10 sm:px-8">
+        <div className="auth-panel w-full max-w-md">
           <Link
             to="/"
             className="inline-flex min-h-11 items-center text-xs text-slate-400 hover:text-cyan-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"

@@ -33,7 +33,7 @@ export function ThreatDistribution({
         </p>
       </div>
 
-      <div className="relative mx-auto mt-3 h-[220px] w-full">
+      <div className={`distribution-chart relative mx-auto mt-3 h-[220px] w-full ${data.length ? "chart-reveal" : ""}`}>
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>

@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   ShieldPlus,
 } from "lucide-react";
-import { useState } from "react";
 import { NavLink } from "react-router";
 import { Brand } from "@/components/ui/Brand";
 
@@ -49,10 +48,11 @@ const navigation = [
 interface SidebarProps {
   mobileOpen: boolean;
   onClose: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
-export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
+export function Sidebar({ mobileOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
 
   const links = (collapsedMode = false) =>
     navigation.map((section) => (
@@ -100,7 +100,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         <div className="flex h-16 items-center border-b border-slate-800/60 px-4">
           <Brand collapsed={collapsed} />
           <button
-            onClick={() => setCollapsed((value) => !value)}
+            onClick={onToggleCollapse}
             className="ml-auto rounded-lg p-2 text-slate-600 transition hover:bg-slate-800/60 hover:text-cyan-300"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
