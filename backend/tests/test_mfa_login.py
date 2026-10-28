@@ -201,6 +201,24 @@ class MfaLoginRegressionTests(unittest.TestCase):
 
         asyncio.run(scenario())
 
+    def test_mfa_status_reports_missing_server_encryption_configuration(self):
+        with patch.object(auth, "mfa_is_configured", return_value=False):
+            response = asyncio.run(auth.mfa_status(current_user=self.user, db=FakeDB(user=self.user)))
+
+        self.assertFalse(response.enabled)
+        self.assertFalse(response.available)
+
+    def test_mfa_enrollment_fails_closed_with_actionable_error_when_key_is_missing(self):
+        db = FakeDB(user=self.user)
+        with patch.object(auth, "mfa_is_configured", return_value=False):
+            with self.assertRaises(HTTPException) as raised:
+                asyncio.run(auth.begin_mfa_enrollment(current_user=self.user, db=db))
+
+        self.assertEqual(raised.exception.status_code, 503)
+        self.assertIn("server encryption is not configured", raised.exception.detail)
+        self.assertEqual(db.commits, 0)
+        self.assertIsNone(db.mfa)
+
     def test_authenticator_can_authorize_password_recovery_and_replay_is_blocked(self):
         async def scenario():
             redis_fake = AtomicFakeRedis()

@@ -17,6 +17,15 @@ def _fernet() -> Fernet:
         raise RuntimeError("MFA is not configured.") from exc
 
 
+def is_configured() -> bool:
+    """Return whether the server can safely encrypt authenticator secrets."""
+    try:
+        _fernet()
+    except RuntimeError:
+        return False
+    return True
+
+
 def new_secret() -> str:
     return pyotp.random_base32()
 

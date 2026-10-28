@@ -69,7 +69,7 @@ export interface SecurityActivity {
   message: string;
   created_at: string;
 }
-export interface MfaStatus { enabled: boolean; recovery_codes?: string[] | null; }
+export interface MfaStatus { enabled: boolean; available?: boolean; recovery_codes?: string[] | null; }
 export interface MfaEnrollment { provisioning_uri: string; manual_key: string; }
 export interface ManagedSession { id: string; created_at: string; last_activity_at: string; expires_at: string; user_agent: string | null; current: boolean; }
 export type AppearanceMode = "dark" | "light" | "system";

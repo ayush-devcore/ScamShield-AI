@@ -138,3 +138,12 @@ cd backend
 The opt-in `--live` mode sends up to 20 evaluation messages to OpenRouter and can incur provider charges. The ordinary backend suite mocks the API. A one-request live smoke test is also available by setting `RUN_OPENROUTER_INTEGRATION=1` in the test process while a backend key and Redis are configured.
 
 The observed local baseline/live metrics and benchmark limitations are recorded in [the message AI evaluation snapshot](docs/MESSAGE_AI_EVALUATION.md).
+
+## Authenticator recovery configuration
+
+Authenticator-based password recovery requires the backend-only `MFA_ENCRYPTION_KEY`. Generate a Fernet key once
+with the backend virtual environment (`python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`)
+and store it as a secret environment variable on the backend service. Keep the same value across restarts and deploys;
+changing it makes previously encrypted authenticator seeds unreadable. Never place it in a `VITE_*` variable or Git.
+When the key is absent or invalid, the API reports recovery setup as unavailable and rejects enrollment without storing
+a pending authenticator secret.

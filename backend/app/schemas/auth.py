@@ -43,6 +43,7 @@ class MfaCodeRequest(BaseModel):
 
 class MfaStatusResponse(BaseModel):
     enabled: bool
+    available: bool = True
     recovery_codes: list[str] | None = None
 
 class MfaLoginRequest(BaseModel):

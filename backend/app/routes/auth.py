@@ -44,7 +44,7 @@ from app.schemas.auth import (
     UserResponse,
     SessionResponse,
 )
-from app.services.mfa import decrypt_secret, encrypt_secret, hash_recovery_code, new_recovery_codes, new_secret, provisioning_uri, valid_code, valid_recovery_code
+from app.services.mfa import decrypt_secret, encrypt_secret, hash_recovery_code, is_configured as mfa_is_configured, new_recovery_codes, new_secret, provisioning_uri, valid_code, valid_recovery_code
 from app.services.audit import record_activity
 from app.services.notifications import create_security_notification
 
@@ -452,6 +452,11 @@ async def complete_mfa_login(
 
 @router.post("/mfa/enroll", response_model=MfaEnrollmentResponse)
 async def begin_mfa_enrollment(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if not mfa_is_configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authenticator recovery is unavailable because server encryption is not configured.",
+        )
     secret = new_secret()
     record = (await db.execute(select(UserMfa).where(UserMfa.user_id == current_user.id))).scalar_one_or_none()
     if record is None:
@@ -483,6 +488,8 @@ async def confirm_mfa_enrollment(payload: MfaCodeRequest, current_user: User = D
 
 @router.get("/mfa", response_model=MfaStatusResponse)
 async def mfa_status(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if not mfa_is_configured():
+        return MfaStatusResponse(enabled=False, available=False)
     record = (await db.execute(select(UserMfa).where(UserMfa.user_id == current_user.id))).scalar_one_or_none()
     return MfaStatusResponse(enabled=bool(record and record.enabled_at and record.secret_encrypted))
 
